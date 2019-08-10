@@ -1,4 +1,4 @@
-package cn.lzumi.elehb.eleme.config;
+package cn.lzumi.elehb.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
