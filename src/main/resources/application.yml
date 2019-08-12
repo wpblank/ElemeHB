@@ -1,3 +1,15 @@
+server:
+  port: 8081
+spring:
+  datasource:
+    url:
+    username:
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+mybatis:
+  mapper-locations: classpath:mapper/**/*Mapper.xml
+  configuration:
+    map-underscore-to-camel-case: true
 cn:
   lzumi:
     elehb: 欢迎使用饿了么红包领取

@@ -1,4 +1,4 @@
-package cn.lzumi.elehb.elemestar.controller;
+package cn.lzumi.elehb.controller;
 
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
