@@ -14,19 +14,19 @@ import org.springframework.stereotype.Component;
 public class ScheduledTasks {
 
     ElemeController elemeController = new ElemeController();
-    private int once = 0;
+    private int once = 1;
 
-    @Scheduled(fixedDelay = 60000)
-    public void getHB() {
-        if (once == 0) {
-            int luckyNumber = (int) elemeController.getLuckyNumber("1d5360653a0768a9.2");
-            int nowNumber = (int) elemeController.getNowNumber("1d5360653a0768a9.2");
-            if (luckyNumber - nowNumber == 1) {
-                System.out.println(elemeController.getOneHb("1d5360653a0768a9.2"));
-                once = 1;
-            } else {
-                System.out.println(nowNumber + "/" + luckyNumber);
-            }
-        }
-    }
+//    @Scheduled(fixedDelay = 60000)
+//    public void getHB() {
+//        if (once == 0) {
+//            int luckyNumber = (int) elemeController.getLuckyNumber("1d5360653a0768a9.2");
+//            int nowNumber = (int) elemeController.getNowNumber("1d5360653a0768a9.2");
+//            if (luckyNumber - nowNumber == 1) {
+//                System.out.println(elemeController.getOneHb("1d5360653a0768a9.2"));
+//                once = 1;
+//            } else {
+//                System.out.println(nowNumber + "/" + luckyNumber);
+//            }
+//        }
+//    }
 }

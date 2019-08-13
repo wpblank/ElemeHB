@@ -49,30 +49,25 @@ public class ElemeController {
     }
 
     /**
+     * 指定用户名领取一次红包
      *
+     * @param sn   红包的sn
+     * @param name 用户名
+     * @return
      */
-    @GetMapping("/get_one/{sn}")
+    @PostMapping("/get_one")
     @ApiOperation(value = "领取一次红包", tags = {"饿了么"})
-    public Object getOneHb(@PathVariable(value = "sn") String sn) {
-        String openId = "B92BCA958221F6FFEE01FCBE8AC955D7";
+    public Object getOneHb(String sn, String name) {
+        ElemeCookie elemeCookie = elemeMapper.getElemeCookiesById(name);
         String getElemeUrl = "https://h5.ele.me/restapi/marketing/v2/promotion/weixin/";
+        String openId = elemeCookie.getOpenId();
         HttpHeaders requestHeaders = new HttpHeaders();
-        requestHeaders.add("Accept", "*/*");
-        requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 5.1; m1 metal Build/LMY47I; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/53.0.2785.49 Mobile MQQBrowser/6.2 TBS/043409 Safari/537.36 V1ANDSQ7.2.5744YYBD QQ/7.2.5.3305 NetType/WIFI WebP/0.3.0 Pixel/1080");
-        requestHeaders.add("Accept-Language", "zh-CN,zh-HK;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6,zh-TW;q=0.5");
-        requestHeaders.add("Connection", "Keep-Alive");
-        requestHeaders.add("Cookie", "SID=ZdKkACRNv6waReXjFue6z8PkFgUWAmOGDAmg");
-
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-        requestBody.add("sign", "61dcd338f5e0f7eb520788b262cb4eaa");
-        requestBody.add("group_sn", sn);
-        requestBody.add("weixin_avatar", "http://thirdqq.qlogo.cn/g?b=oidb&k=2lh9llHjrCvDsXwmiahO9TA&s=40&t=1555107156");
-        requestBody.add("weixin_username", "");
-
+        //初始化requestHeaders和requestBody
+        requestInit(requestHeaders, requestBody, elemeCookie.getSid(), elemeCookie.getSign(), sn);
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestBody, requestHeaders);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate
-                .exchange(getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
+        ResponseEntity<String> responseEntity =
+                new RestTemplate().exchange(getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
         JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
         return jsonObject.toJSONString();
     }
@@ -86,15 +81,10 @@ public class ElemeController {
         String openId = "A2DFA518682C27A84402AC8A1F7A4E06";
         String getElemeUrl = "https://h5.ele.me/restapi/marketing/v2/promotion/weixin/";
         HttpHeaders requestHeaders = new HttpHeaders();
-        requestHeaders.add("Accept", "*/*");
-        requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 5.1; m1 metal Build/LMY47I; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/53.0.2785.49 Mobile MQQBrowser/6.2 TBS/043409 Safari/537.36 V1ANDSQ7.2.5744YYBD QQ/7.2.5.3305 NetType/WIFI WebP/0.3.0 Pixel/1080");
-        requestHeaders.add("Accept-Language", "zh-CN,zh-HK;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6,zh-TW;q=0.5");
-        requestHeaders.add("Connection", "Keep-Alive");
-        requestHeaders.add("Cookie", "SID=eFYsvCamsdNkx22MqVQbG3Y5m8BbxYeaIhqA");
-
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-        requestBody.add("sign", "cd5dc635f37194eb3b8f59110653311f");
-        requestBody.add("group_sn", sn);
+        //指定工具人小号
+        requestInit(requestHeaders, requestBody,
+                "eFYsvCamsdNkx22MqVQbG3Y5m8BbxYeaIhqA", "cd5dc635f37194eb3b8f59110653311f", sn);
         RestTemplate restTemplate = new RestTemplate();
         //添加hearer和body，发送post请求
         ResponseEntity<String> responseEntity =
@@ -112,5 +102,44 @@ public class ElemeController {
             System.out.println(elemeCookie.getOpenId());
         }
         return elemeCookies.get(0).getWeixinAvatar();
+    }
+
+    /**
+     * 初始化requestHeaders和requestBody
+     *
+     * @param requestHeaders 请求头
+     * @param requestBody    请求体
+     * @param sid
+     * @param sign
+     * @param sn
+     */
+    private void requestInit(HttpHeaders requestHeaders, MultiValueMap<String,
+            String> requestBody, String sid, String sign, String sn) {
+        requestHeaders.add("Accept", "*/*");
+        requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 5.1; m1 metal Build/LMY47I; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/53.0.2785.49 Mobile MQQBrowser/6.2 TBS/043409 Safari/537.36 V1ANDSQ7.2.5744YYBD QQ/7.2.5.3305 NetType/WIFI WebP/0.3.0 Pixel/1080");
+        requestHeaders.add("Accept-Language", "zh-CN,zh-HK;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6,zh-TW;q=0.5");
+        requestHeaders.add("Connection", "Keep-Alive");
+        requestHeaders.add("Cookie", "SID=" + sid);
+
+        requestBody.add("sign", sign);
+        requestBody.add("group_sn", sn);
+    }
+
+    /**
+     * 初始化requestHeaders和requestBody
+     *
+     * @param requestHeaders
+     * @param requestBody
+     * @param sid
+     * @param sign
+     * @param sn
+     * @param weixinAvatar   小号头像
+     * @param weixinName     小号名称
+     */
+    private void requestInit(HttpHeaders requestHeaders, MultiValueMap<String,
+            String> requestBody, String sid, String sign, String sn, String weixinAvatar, String weixinName) {
+        requestInit(requestHeaders, requestBody, sid, sign, sn);
+        requestBody.add("weixin_avatar", weixinAvatar);
+        requestBody.add("weixin_username", weixinName);
     }
 }
