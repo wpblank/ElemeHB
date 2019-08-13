@@ -1,6 +1,9 @@
 package cn.lzumi.elehb.mapper;
 
 import cn.lzumi.elehb.bean.ElemeCookie;
+import cn.lzumi.elehb.bean.ElemeHb;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.mapstruct.Mapper;
@@ -32,4 +35,16 @@ public interface ElemeMapper {
     @Select("select ec.* from eleme_cookie ec,user u WHERE u.name = #{name} and u.cookie_id = ec.id")
     ElemeCookie getElemeCookiesById(@Param("name") String name);
 
+    /**
+     * 添加一条红包链接，并判断是否领取
+     * @param elemeHb 红包对象
+     * @return
+     */
+    @Insert("insert into eleme_hb (url,sn,is_get,max_num,now_num,get_time) " +
+            "values (#{url}, #{sn},#{isGet},#{maxNum},#{nowNum},#{getTime})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    int addElemeHb(ElemeHb elemeHb);
+
+    @Select("select sn from eleme_hb where is_get=0")
+    String getElemeHb();
 }

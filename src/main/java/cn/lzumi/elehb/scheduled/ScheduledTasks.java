@@ -1,6 +1,9 @@
 package cn.lzumi.elehb.scheduled;
 
+import cn.lzumi.elehb.bean.ElemeHb;
 import cn.lzumi.elehb.controller.ElemeController;
+import cn.lzumi.elehb.mapper.ElemeMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -13,20 +16,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScheduledTasks {
 
-    ElemeController elemeController = new ElemeController();
-    private int once = 1;
+    @Autowired
+    ElemeMapper elemeMapper;
 
-//    @Scheduled(fixedDelay = 60000)
-//    public void getHB() {
-//        if (once == 0) {
-//            int luckyNumber = (int) elemeController.getLuckyNumber("1d5360653a0768a9.2");
-//            int nowNumber = (int) elemeController.getNowNumber("1d5360653a0768a9.2");
-//            if (luckyNumber - nowNumber == 1) {
-//                System.out.println(elemeController.getOneHb("1d5360653a0768a9.2"));
-//                once = 1;
-//            } else {
-//                System.out.println(nowNumber + "/" + luckyNumber);
-//            }
-//        }
-//    }
+    private ElemeController elemeController = new ElemeController();
+    private String sn = "2a4bedf48a2a0c83.2";//elemeMapper.getElemeHb();
+    private int once = 0;
+
+    @Scheduled(fixedDelay = 60000)
+    public void getHb() {
+        if (once == 0) {
+            int luckyNumber = (int) elemeController.getLuckyNumber(sn);
+            int nowNumber = (int) elemeController.getNowNumber(sn);
+            if (luckyNumber - nowNumber == 1) {
+                System.out.println(elemeController.getOneHb(sn,"izumi"));
+                once = 1;
+            } else {
+                System.out.println(nowNumber + "/" + luckyNumber);
+            }
+        }
+    }
 }

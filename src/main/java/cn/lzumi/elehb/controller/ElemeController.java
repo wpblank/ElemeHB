@@ -1,5 +1,6 @@
 package cn.lzumi.elehb.controller;
 
+import cn.lzumi.elehb.bean.ElemeHb;
 import cn.lzumi.elehb.mapper.ElemeMapper;
 import cn.lzumi.elehb.bean.ElemeCookie;
 import com.alibaba.fastjson.JSON;
@@ -30,17 +31,19 @@ public class ElemeController {
     @Autowired
     private ElemeMapper elemeMapper;
 
+    private RestTemplate restTemplate = new RestTemplate();
+
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么红包领取", tags = {"饿了么"})
-    public String get() {
-        return elehb;
+    public Object get() {
+        return elemeMapper.getElemeHb();
+        //return elehb;
     }
 
     @GetMapping("/lucky_number/{sn}")
     @ApiOperation(value = "获取第几个红包是大红包", tags = {"饿了么"})
     public Object getLuckyNumber(@PathVariable(value = "sn") String sn) {
         String elemeNumUrl = "https://h5.ele.me/restapi/marketing/themes/1/group_sns/";
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         String strbody = restTemplate.exchange(elemeNumUrl + sn, HttpMethod.GET, entity, String.class).getBody();
@@ -66,8 +69,8 @@ public class ElemeController {
         //初始化requestHeaders和requestBody
         requestInit(requestHeaders, requestBody, elemeCookie.getSid(), elemeCookie.getSign(), sn);
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestBody, requestHeaders);
-        ResponseEntity<String> responseEntity =
-                new RestTemplate().exchange(getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
+        ResponseEntity<String> responseEntity = restTemplate.exchange
+                (getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
         JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
         return jsonObject.toJSONString();
     }
@@ -85,7 +88,6 @@ public class ElemeController {
         //指定工具人小号
         requestInit(requestHeaders, requestBody,
                 "eFYsvCamsdNkx22MqVQbG3Y5m8BbxYeaIhqA", "cd5dc635f37194eb3b8f59110653311f", sn);
-        RestTemplate restTemplate = new RestTemplate();
         //添加hearer和body，发送post请求
         ResponseEntity<String> responseEntity =
                 restTemplate.exchange(getElemeUrl + openId, HttpMethod.POST,
@@ -93,6 +95,23 @@ public class ElemeController {
         JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
         JSONArray jsonArray = JSONArray.parseArray(jsonObject.get("promotion_records").toString());
         return jsonArray.size();
+    }
+
+    /**
+     *
+     */
+    @GetMapping("/add/{url}")
+    @ApiOperation(value = "添加一个红包链接", tags = {"饿了么"})
+    public Object addHb(@PathVariable(value = "url") String url) {
+        String sn = getSn(url);
+        int maxNum = (int) getLuckyNumber(sn);
+        int nowNum = (int) getNowNumber(sn);
+        ElemeHb elemeHb = new ElemeHb(url, sn, maxNum > nowNum ? 0 : 1, maxNum, nowNum);
+        if (elemeMapper.addElemeHb(elemeHb) == 1) {
+            return "红包添加成功，sn=" + sn;
+        } else {
+            return "红包添加失败:" + elemeHb.toString();
+        }
     }
 
     @GetMapping("/get_cookie")
@@ -141,5 +160,13 @@ public class ElemeController {
         requestInit(requestHeaders, requestBody, sid, sign, sn);
         requestBody.add("weixin_avatar", weixinAvatar);
         requestBody.add("weixin_username", weixinName);
+    }
+
+    /**
+     * @param url 红包链接
+     * @return 红包的sn
+     */
+    private String getSn(String url) {
+        return url.substring(url.indexOf("&sn=") + 4, url.indexOf("&sn=") + 22);
     }
 }
