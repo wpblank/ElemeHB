@@ -1,5 +1,8 @@
 package cn.lzumi.elehb.bean;
 
+/**
+ * @author izumi
+ */
 public class ElemeCookie {
     private int id;
     private String openId;

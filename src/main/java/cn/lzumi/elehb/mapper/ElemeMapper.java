@@ -37,6 +37,7 @@ public interface ElemeMapper {
 
     /**
      * 添加一条红包链接，并判断是否领取
+     *
      * @param elemeHb 红包对象
      * @return
      */
@@ -45,6 +46,11 @@ public interface ElemeMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int addElemeHb(ElemeHb elemeHb);
 
-    @Select("select sn from eleme_hb where is_get=0")
-    String getElemeHb();
+    /**
+     * 获取未领取红包备用
+     * @param num 获取红包数量
+     * @return
+     */
+    @Select("select * from eleme_hb where is_get=0 limit #{num}")
+    List<ElemeHb> getElemeHb(@Param("num") int num);
 }

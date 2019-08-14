@@ -36,8 +36,7 @@ public class ElemeController {
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么红包领取", tags = {"饿了么"})
     public Object get() {
-        return elemeMapper.getElemeHb();
-        //return elehb;
+        return elehb;
     }
 
     @GetMapping("/lucky_number/{sn}")
@@ -100,10 +99,10 @@ public class ElemeController {
     /**
      *
      */
-    @GetMapping("/add/{url}")
+    @GetMapping("/add_hongbao/{url}")
     @ApiOperation(value = "添加一个红包链接", tags = {"饿了么"})
     public Object addHb(@PathVariable(value = "url") String url) {
-        String sn = getSn(url);
+        String sn = getSnByUrl(url);
         int maxNum = (int) getLuckyNumber(sn);
         int nowNum = (int) getNowNumber(sn);
         ElemeHb elemeHb = new ElemeHb(url, sn, maxNum > nowNum ? 0 : 1, maxNum, nowNum);
@@ -112,6 +111,13 @@ public class ElemeController {
         } else {
             return "红包添加失败:" + elemeHb.toString();
         }
+    }
+
+    @GetMapping("/get_hongbao/{num}")
+    @ApiOperation(value = "获取红包链接列表", tags = {"饿了么"})
+    public List<ElemeHb> getHb(@PathVariable(value = "num") int num) {
+        List<ElemeHb> elemeHbList = elemeMapper.getElemeHb(num);
+        return elemeHbList;
     }
 
     @GetMapping("/get_cookie")
@@ -166,7 +172,7 @@ public class ElemeController {
      * @param url 红包链接
      * @return 红包的sn
      */
-    private String getSn(String url) {
+    private String getSnByUrl(String url) {
         return url.substring(url.indexOf("&sn=") + 4, url.indexOf("&sn=") + 22);
     }
 }
