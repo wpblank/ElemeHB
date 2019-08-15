@@ -3,6 +3,7 @@ package cn.lzumi.elehb.controller;
 import cn.lzumi.elehb.bean.ElemeHb;
 import cn.lzumi.elehb.mapper.ElemeMapper;
 import cn.lzumi.elehb.bean.ElemeCookie;
+import cn.lzumi.elehb.utils.ElemeUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -30,8 +31,13 @@ public class ElemeController {
 
     @Autowired
     private ElemeMapper elemeMapper;
+    @Autowired
+    private ElemeUtils elemeUtils;
 
     private RestTemplate restTemplate = new RestTemplate();
+    private List<ElemeCookie> elemeCookies;
+    private String elemeNumUrl = "https://h5.ele.me/restapi/marketing/themes/1/group_sns/";
+    private String getElemeUrl = "https://h5.ele.me/restapi/marketing/v2/promotion/weixin/";
 
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么红包领取", tags = {"饿了么"})
@@ -42,11 +48,10 @@ public class ElemeController {
     @GetMapping("/lucky_number/{sn}")
     @ApiOperation(value = "获取第几个红包是大红包", tags = {"饿了么"})
     public Object getLuckyNumber(@PathVariable(value = "sn") String sn) {
-        String elemeNumUrl = "https://h5.ele.me/restapi/marketing/themes/1/group_sns/";
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> entity = new HttpEntity<String>(headers);
-        String strbody = restTemplate.exchange(elemeNumUrl + sn, HttpMethod.GET, entity, String.class).getBody();
-        JSONObject jsonObject = JSON.parseObject(strbody);
+        String strBody = restTemplate.exchange(elemeNumUrl + sn, HttpMethod.GET, entity, String.class).getBody();
+        JSONObject jsonObject = JSON.parseObject(strBody);
         return jsonObject.get("lucky_number");
     }
 
@@ -55,23 +60,60 @@ public class ElemeController {
      *
      * @param sn   红包的sn
      * @param name 用户名
-     * @return
+     * @return 领取结果字符串
      */
     @PostMapping("/get_one")
     @ApiOperation(value = "领取一次红包", tags = {"饿了么"})
     public Object getOneHb(String sn, String name) {
-        ElemeCookie elemeCookie = elemeMapper.getElemeCookiesById(name);
-        String getElemeUrl = "https://h5.ele.me/restapi/marketing/v2/promotion/weixin/";
+        ElemeCookie elemeCookie = elemeMapper.getElemeCookiesByName(name);
+        if (elemeCookie == null) {
+            return "未查到对应用户";
+        }
         String openId = elemeCookie.getOpenId();
         HttpHeaders requestHeaders = new HttpHeaders();
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
         //初始化requestHeaders和requestBody
-        requestInit(requestHeaders, requestBody, elemeCookie.getSid(), elemeCookie.getSign(), sn);
+        elemeUtils.requestInit(requestHeaders, requestBody, elemeCookie.getSid(), elemeCookie.getSign(), sn);
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestBody, requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
         JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
         return jsonObject.toJSONString();
+    }
+
+    /**
+     * 自动帮用户领取红包，如没传用户名参数，则领取到最大前一个
+     *
+     * @param sn   红包sn
+     * @param name 用户名
+     * @return
+     */
+    @PostMapping("/get_all")
+    @ApiOperation(value = "领取红包", tags = {"饿了么"})
+    public Object getAllHb(String sn, String name) {
+        //初始化cookies
+        elemeCookies = elemeUtils.elemeCookiesInit(elemeCookies);
+        int luckyNumber = (int) getLuckyNumber(sn);
+        int nowNumber = (int) getNowNumber(sn);
+        //循环领取红包、直到最大红包前一个
+        while (luckyNumber > nowNumber + 1) {
+            String openId = elemeCookies.get(nowNumber).getOpenId();
+            HttpHeaders requestHeaders = new HttpHeaders();
+            MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+            //初始化requestHeaders和requestBody
+            elemeUtils.requestInit(requestHeaders, requestBody,
+                    elemeCookies.get(nowNumber).getSid(), elemeCookies.get(nowNumber).getSign(), sn);
+            HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestBody, requestHeaders);
+            ResponseEntity<String> responseEntity = restTemplate.exchange
+                    (getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
+            JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
+            if(jsonObject.getInteger("ret_code"))
+        }
+        if (name == null) {
+            return "直接返回、下一个最大";
+        } else {
+            return "调用get_one()，帮name = " + name + "的人领取";
+        }
     }
 
     /**
@@ -81,11 +123,10 @@ public class ElemeController {
     @ApiOperation(value = "查询红包当前领取数量", tags = {"饿了么"})
     public Object getNowNumber(@PathVariable(value = "sn") String sn) {
         String openId = "A2DFA518682C27A84402AC8A1F7A4E06";
-        String getElemeUrl = "https://h5.ele.me/restapi/marketing/v2/promotion/weixin/";
         HttpHeaders requestHeaders = new HttpHeaders();
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
         //指定工具人小号
-        requestInit(requestHeaders, requestBody,
+        elemeUtils.requestInit(requestHeaders, requestBody,
                 "eFYsvCamsdNkx22MqVQbG3Y5m8BbxYeaIhqA", "cd5dc635f37194eb3b8f59110653311f", sn);
         //添加hearer和body，发送post请求
         ResponseEntity<String> responseEntity =
@@ -102,7 +143,7 @@ public class ElemeController {
     @GetMapping("/add_hongbao/{url}")
     @ApiOperation(value = "添加一个红包链接", tags = {"饿了么"})
     public Object addHb(@PathVariable(value = "url") String url) {
-        String sn = getSnByUrl(url);
+        String sn = elemeUtils.getSnByUrl(url);
         int maxNum = (int) getLuckyNumber(sn);
         int nowNum = (int) getNowNumber(sn);
         ElemeHb elemeHb = new ElemeHb(url, sn, maxNum > nowNum ? 0 : 1, maxNum, nowNum);
@@ -127,52 +168,5 @@ public class ElemeController {
             System.out.println(elemeCookie.getOpenId());
         }
         return elemeCookies.get(0).getWeixinAvatar();
-    }
-
-    /**
-     * 初始化requestHeaders和requestBody
-     *
-     * @param requestHeaders 请求头
-     * @param requestBody    请求体
-     * @param sid
-     * @param sign
-     * @param sn
-     */
-    private void requestInit(HttpHeaders requestHeaders, MultiValueMap<String,
-            String> requestBody, String sid, String sign, String sn) {
-        requestHeaders.add("Accept", "*/*");
-        requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 5.1; m1 metal Build/LMY47I; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/53.0.2785.49 Mobile MQQBrowser/6.2 TBS/043409 Safari/537.36 V1ANDSQ7.2.5744YYBD QQ/7.2.5.3305 NetType/WIFI WebP/0.3.0 Pixel/1080");
-        requestHeaders.add("Accept-Language", "zh-CN,zh-HK;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6,zh-TW;q=0.5");
-        requestHeaders.add("Connection", "Keep-Alive");
-        requestHeaders.add("Cookie", "SID=" + sid);
-
-        requestBody.add("sign", sign);
-        requestBody.add("group_sn", sn);
-    }
-
-    /**
-     * 初始化requestHeaders和requestBody
-     *
-     * @param requestHeaders
-     * @param requestBody
-     * @param sid
-     * @param sign
-     * @param sn
-     * @param weixinAvatar   小号头像
-     * @param weixinName     小号名称
-     */
-    private void requestInit(HttpHeaders requestHeaders, MultiValueMap<String,
-            String> requestBody, String sid, String sign, String sn, String weixinAvatar, String weixinName) {
-        requestInit(requestHeaders, requestBody, sid, sign, sn);
-        requestBody.add("weixin_avatar", weixinAvatar);
-        requestBody.add("weixin_username", weixinName);
-    }
-
-    /**
-     * @param url 红包链接
-     * @return 红包的sn
-     */
-    private String getSnByUrl(String url) {
-        return url.substring(url.indexOf("&sn=") + 4, url.indexOf("&sn=") + 22);
     }
 }

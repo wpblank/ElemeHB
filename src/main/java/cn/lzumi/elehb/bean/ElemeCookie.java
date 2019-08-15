@@ -22,6 +22,10 @@ public class ElemeCookie {
      * 领取失败次数，用于判断是否失效
      */
     private int loseEfficacy;
+    /**
+     * 是否是某一用户的cookie 0:不是 1:是
+     */
+    private int isUser;
 
     public int getId() {
         return id;
@@ -93,5 +97,13 @@ public class ElemeCookie {
 
     public void setLoseEfficacy(int loseEfficacy) {
         this.loseEfficacy = loseEfficacy;
+    }
+
+    public int getIsUser() {
+        return isUser;
+    }
+
+    public void setIsUser(int isUser) {
+        this.isUser = isUser;
     }
 }
