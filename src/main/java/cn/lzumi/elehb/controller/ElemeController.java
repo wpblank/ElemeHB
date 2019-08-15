@@ -8,6 +8,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -36,6 +38,7 @@ public class ElemeController {
 
     private RestTemplate restTemplate = new RestTemplate();
     private List<ElemeCookie> elemeCookies;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private String elemeNumUrl = "https://h5.ele.me/restapi/marketing/themes/1/group_sns/";
     private String getElemeUrl = "https://h5.ele.me/restapi/marketing/v2/promotion/weixin/";
 
@@ -96,23 +99,38 @@ public class ElemeController {
         int luckyNumber = (int) getLuckyNumber(sn);
         int nowNumber = (int) getNowNumber(sn);
         //循环领取红包、直到最大红包前一个
-        while (luckyNumber > nowNumber + 1) {
-            String openId = elemeCookies.get(nowNumber).getOpenId();
+        for (int i = 0; luckyNumber > nowNumber + 1 && i < elemeCookies.size(); i++) {
+            String openId = elemeCookies.get(i).getOpenId();
             HttpHeaders requestHeaders = new HttpHeaders();
             MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
             //初始化requestHeaders和requestBody
             elemeUtils.requestInit(requestHeaders, requestBody,
-                    elemeCookies.get(nowNumber).getSid(), elemeCookies.get(nowNumber).getSign(), sn);
+                    elemeCookies.get(i).getSid(), elemeCookies.get(i).getSign(), sn);
             HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestBody, requestHeaders);
             ResponseEntity<String> responseEntity = restTemplate.exchange
                     (getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
             JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
-            if(jsonObject.getInteger("ret_code"))
+            System.out.println(jsonObject.toJSONString());
+            switch (jsonObject.getInteger("ret_code")) {
+                case 2:
+                    System.out.println("该cookie领取过此红包,id=" + elemeCookies.get(i).getId());
+                    break;
+                case 4:
+                    elemeCookies.get(i).setTodayUse(elemeCookies.get(i).getTodayUse() + 1);
+                    elemeCookies.get(i).setTotalUse(elemeCookies.get(i).getTotalUse() + 1);
+                    nowNumber++;
+                    System.out.println("真实当前领取人数：" + jsonObject.getJSONArray("promotion_records").size());
+                    System.out.println("当前领取人数：" + nowNumber);
+                    break;
+                default:
+                    break;
+            }
         }
         if (name == null) {
             return "直接返回、下一个最大";
         } else {
-            return "调用get_one()，帮name = " + name + "的人领取";
+            //直接领最大红包可能会导致金额过小、慎用。
+            return getOneHb(sn, name);
         }
     }
 
@@ -163,7 +181,7 @@ public class ElemeController {
 
     @GetMapping("/get_cookie")
     public Object getCookie() {
-        List<ElemeCookie> elemeCookies = elemeMapper.getElemeCookies();
+        List<ElemeCookie> elemeCookies = elemeMapper.getElemeCookies(elemeUtils.COOKIE_NUM);
         for (ElemeCookie elemeCookie : elemeCookies) {
             System.out.println(elemeCookie.getOpenId());
         }

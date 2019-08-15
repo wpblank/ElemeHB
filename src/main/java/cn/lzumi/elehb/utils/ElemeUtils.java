@@ -21,7 +21,8 @@ public class ElemeUtils {
 
     @Autowired
     ElemeMapper elemeMapper;
-    public final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    public final int COOKIE_NUM = 20;
 
     /**
      * 初始化requestHeaders和requestBody
@@ -65,8 +66,8 @@ public class ElemeUtils {
     public List<ElemeCookie> elemeCookiesInit(List<ElemeCookie> elemeCookies) {
         //如果cookies不存在或者数量小于10，则向数据库请求获得新的cookies
         if (elemeCookies == null || elemeCookies.size() < 10) {
-            elemeCookies = elemeMapper.getElemeCookies();
-            logger.debug("获取新的cookies，数目为：" + elemeCookies.size());
+            elemeCookies = elemeMapper.getElemeCookies(COOKIE_NUM);
+            System.out.println("获取新的cookies，数目为：" + elemeCookies.size());
             return elemeCookies;
         } else {
             return elemeCookies;

@@ -19,12 +19,13 @@ import java.util.List;
 @Component
 public interface ElemeMapper {
     /**
-     * 获取20条cookie，暂存内存中用于小号垫包
+     * 获取cookie，暂存内存中用于小号垫包
      *
+     * @param num 获取cookie的条数（推荐10以上）
      * @return 饿了么小号cookie的一个列表
      */
-    @Select("select * from eleme_cookie where today_use<5 and is_user=0 limit 20")
-    List<ElemeCookie> getElemeCookies();
+    @Select("select * from eleme_cookie where today_use<5 and is_user=0 limit #{num}")
+    List<ElemeCookie> getElemeCookies(@Param("num") int num);
 
     /**
      * 获取指定用户的cookie
@@ -48,6 +49,7 @@ public interface ElemeMapper {
 
     /**
      * 获取未领取红包备用
+     *
      * @param num 获取红包数量
      * @return
      */
