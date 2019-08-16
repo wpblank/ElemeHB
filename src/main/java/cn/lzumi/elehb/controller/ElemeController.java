@@ -72,15 +72,7 @@ public class ElemeController {
         if (elemeCookie == null) {
             return "未查到对应用户";
         }
-        String openId = elemeCookie.getOpenId();
-        HttpHeaders requestHeaders = new HttpHeaders();
-        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-        //初始化requestHeaders和requestBody
-        elemeUtils.requestInit(requestHeaders, requestBody, elemeCookie.getSid(), elemeCookie.getSign(), sn);
-        HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestBody, requestHeaders);
-        ResponseEntity<String> responseEntity = restTemplate.exchange
-                (getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
-        JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
+        JSONObject jsonObject = elemeUtils.getOne(sn, elemeCookie);
         return jsonObject.toJSONString();
     }
 
@@ -98,32 +90,32 @@ public class ElemeController {
         elemeCookies = elemeUtils.elemeCookiesInit(elemeCookies);
         int luckyNumber = (int) getLuckyNumber(sn);
         int nowNumber = (int) getNowNumber(sn);
+        System.out.println(nowNumber + "/" + luckyNumber);
+        logger.debug(nowNumber + "/" + luckyNumber);
+        logger.info(nowNumber + "/" + luckyNumber);
         //循环领取红包、直到最大红包前一个
         for (int i = 0; luckyNumber > nowNumber + 1 && i < elemeCookies.size(); i++) {
-            String openId = elemeCookies.get(i).getOpenId();
-            HttpHeaders requestHeaders = new HttpHeaders();
-            MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-            //初始化requestHeaders和requestBody
-            elemeUtils.requestInit(requestHeaders, requestBody,
-                    elemeCookies.get(i).getSid(), elemeCookies.get(i).getSign(), sn);
-            HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestBody, requestHeaders);
-            ResponseEntity<String> responseEntity = restTemplate.exchange
-                    (getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
-            JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
-            System.out.println(jsonObject.toJSONString());
-            switch (jsonObject.getInteger("ret_code")) {
-                case 2:
-                    System.out.println("该cookie领取过此红包,id=" + elemeCookies.get(i).getId());
-                    break;
-                case 4:
-                    elemeCookies.get(i).setTodayUse(elemeCookies.get(i).getTodayUse() + 1);
-                    elemeCookies.get(i).setTotalUse(elemeCookies.get(i).getTotalUse() + 1);
-                    nowNumber++;
-                    System.out.println("真实当前领取人数：" + jsonObject.getJSONArray("promotion_records").size());
-                    System.out.println("当前领取人数：" + nowNumber);
-                    break;
-                default:
-                    break;
+            System.out.println(elemeCookies.get(i).getTodayUse());
+            //cookie的每天使用次数为5次
+            if (elemeCookies.get(i).getTodayUse() < 5) {
+                JSONObject jsonObject = elemeUtils.getOne(sn, elemeCookies.get(i));
+                System.out.println(jsonObject.toJSONString());
+                logger.debug((jsonObject.toJSONString()));
+                logger.info((jsonObject.toJSONString()));
+                switch (jsonObject.getInteger("ret_code")) {
+                    case 2:
+                        System.out.println("该cookie领取过此红包,id=" + elemeCookies.get(i).getId());
+                        break;
+                    case 4:
+                        elemeCookies.get(i).setTodayUse(elemeCookies.get(i).getTodayUse() + 1);
+                        elemeCookies.get(i).setTotalUse(elemeCookies.get(i).getTotalUse() + 1);
+                        nowNumber++;
+                        System.out.println("真实当前领取人数：" + jsonObject.getJSONArray("promotion_records").size());
+                        System.out.println("当前领取人数：" + nowNumber);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         if (name == null) {

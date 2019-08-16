@@ -3,6 +3,8 @@ package cn.lzumi.elehb.scheduled;
 import cn.lzumi.elehb.bean.ElemeHb;
 import cn.lzumi.elehb.controller.ElemeController;
 import cn.lzumi.elehb.mapper.ElemeMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,11 +24,15 @@ public class ScheduledTasks {
     @Autowired
     ElemeController elemeController;
     private int once = 1;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Scheduled(fixedDelay = 86400000)
     public void initHb() {
         List<ElemeHb> elemeHbList = elemeController.getHb(1);
         System.out.println(elemeHbList.get(0).getNowNum() + "    " + elemeHbList.get(0).getSn());
+        logger.debug(elemeHbList.get(0).getNowNum() + "    " + elemeHbList.get(0).getSn());
+        logger.info(elemeHbList.get(0).getNowNum() + "    " + elemeHbList.get(0).getSn());
+        logger.error(elemeHbList.get(0).getNowNum() + "    " + elemeHbList.get(0).getSn());
         once = 0;
     }
 

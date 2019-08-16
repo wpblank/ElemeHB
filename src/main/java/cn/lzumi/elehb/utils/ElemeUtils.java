@@ -2,12 +2,19 @@ package cn.lzumi.elehb.utils;
 
 import cn.lzumi.elehb.bean.ElemeCookie;
 import cn.lzumi.elehb.mapper.ElemeMapper;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -23,6 +30,7 @@ public class ElemeUtils {
     ElemeMapper elemeMapper;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     public final int COOKIE_NUM = 20;
+    private RestTemplate restTemplate = new RestTemplate();
 
     /**
      * 初始化requestHeaders和requestBody
@@ -63,11 +71,30 @@ public class ElemeUtils {
         requestBody.add("weixin_username", weixinName);
     }
 
+    /**
+     * 领取一次红包
+     * @param sn          红包sn
+     * @param elemeCookie cookie
+     * @return 领取结果的json对象
+     */
+    public JSONObject getOne(String sn, ElemeCookie elemeCookie) {
+        String getElemeUrl = "https://h5.ele.me/restapi/marketing/v2/promotion/weixin/";
+        String openId = elemeCookie.getOpenId();
+        HttpHeaders requestHeaders = new HttpHeaders();
+        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+        //初始化requestHeaders和requestBody
+        requestInit(requestHeaders, requestBody, elemeCookie.getSid(), elemeCookie.getSign(), sn);
+        HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestBody, requestHeaders);
+        ResponseEntity<String> responseEntity = restTemplate.exchange
+                (getElemeUrl + openId, HttpMethod.POST, requestEntity, String.class);
+        return JSON.parseObject(responseEntity.getBody());
+    }
+
     public List<ElemeCookie> elemeCookiesInit(List<ElemeCookie> elemeCookies) {
         //如果cookies不存在或者数量小于10，则向数据库请求获得新的cookies
         if (elemeCookies == null || elemeCookies.size() < 10) {
             elemeCookies = elemeMapper.getElemeCookies(COOKIE_NUM);
-            System.out.println("获取新的cookies，数目为：" + elemeCookies.size());
+            logger.info("获取新的cookies，数目为：" + elemeCookies.size());
             return elemeCookies;
         } else {
             return elemeCookies;
