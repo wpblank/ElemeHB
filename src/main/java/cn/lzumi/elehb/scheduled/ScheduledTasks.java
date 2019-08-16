@@ -20,24 +20,20 @@ import java.util.List;
  */
 @Component
 public class ScheduledTasks {
-
-    @Autowired
-    ElemeController elemeController;
-    private int once = 1;
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    @Scheduled(fixedDelay = 86400000)
-    public void initHb() {
-        List<ElemeHb> elemeHbList = elemeController.getHb(1);
-        System.out.println(elemeHbList.get(0).getNowNum() + "    " + elemeHbList.get(0).getSn());
-        logger.debug(elemeHbList.get(0).getNowNum() + "    " + elemeHbList.get(0).getSn());
-        logger.info(elemeHbList.get(0).getNowNum() + "    " + elemeHbList.get(0).getSn());
-        logger.error(elemeHbList.get(0).getNowNum() + "    " + elemeHbList.get(0).getSn());
-        once = 0;
-    }
-
-    @Scheduled(fixedDelay = 60000)
-    public void getHb() {
+//
+//    @Autowired
+//    ElemeController elemeController;
+//    private int once = 1;
+//    private final Logger logger = LoggerFactory.getLogger(getClass());
+//
+//    @Scheduled(fixedDelay = 86400000)
+//    public void initHb() {
+//        List<ElemeHb> elemeHbList = elemeController.getHb(1);
+//        once = 0;
+//    }
+//
+//    @Scheduled(fixedDelay = 60000)
+//    public void getHb() {
 //        if (once == 0) {
 //            int luckyNumber = (int) elemeController.getLuckyNumber(elemeHbList.get(1).getSn());
 //            int nowNumber = (int) elemeController.getNowNumber(elemeHbList.get(1).getSn());
@@ -48,5 +44,5 @@ public class ScheduledTasks {
 //                System.out.println(nowNumber + "/" + luckyNumber);
 //            }
 //        }
-    }
+//    }
 }

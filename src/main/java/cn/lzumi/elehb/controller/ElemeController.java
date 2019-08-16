@@ -90,28 +90,23 @@ public class ElemeController {
         elemeCookies = elemeUtils.elemeCookiesInit(elemeCookies);
         int luckyNumber = (int) getLuckyNumber(sn);
         int nowNumber = (int) getNowNumber(sn);
-        System.out.println(nowNumber + "/" + luckyNumber);
-        logger.debug(nowNumber + "/" + luckyNumber);
-        logger.info(nowNumber + "/" + luckyNumber);
+        logger.debug("红包{}的领取状况：{}/{}", sn, nowNumber, luckyNumber);
         //循环领取红包、直到最大红包前一个
         for (int i = 0; luckyNumber > nowNumber + 1 && i < elemeCookies.size(); i++) {
-            System.out.println(elemeCookies.get(i).getTodayUse());
             //cookie的每天使用次数为5次
             if (elemeCookies.get(i).getTodayUse() < 5) {
                 JSONObject jsonObject = elemeUtils.getOne(sn, elemeCookies.get(i));
-                System.out.println(jsonObject.toJSONString());
                 logger.debug((jsonObject.toJSONString()));
                 logger.info((jsonObject.toJSONString()));
                 switch (jsonObject.getInteger("ret_code")) {
                     case 2:
-                        System.out.println("该cookie领取过此红包,id=" + elemeCookies.get(i).getId());
+                        logger.info("该cookie领取过此红包,id={}", elemeCookies.get(i).getId());
                         break;
                     case 4:
                         elemeCookies.get(i).setTodayUse(elemeCookies.get(i).getTodayUse() + 1);
                         elemeCookies.get(i).setTotalUse(elemeCookies.get(i).getTotalUse() + 1);
-                        nowNumber++;
-                        System.out.println("真实当前领取人数：" + jsonObject.getJSONArray("promotion_records").size());
-                        System.out.println("当前领取人数：" + nowNumber);
+                        nowNumber = jsonObject.getJSONArray("promotion_records").size();
+                        logger.debug("红包{}的领取状况：{}/{}", sn, nowNumber, luckyNumber);
                         break;
                     default:
                         break;
@@ -119,7 +114,9 @@ public class ElemeController {
             }
         }
         if (name == null) {
-            return "直接返回、下一个最大";
+            String s = "红包" + sn + "的领取状况：" + nowNumber + "/" + luckyNumber;
+            logger.info(s);
+            return s;
         } else {
             //直接领最大红包可能会导致金额过小、慎用。
             return getOneHb(sn, name);
