@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Component
 public class ScheduledTasks {
-//
+
 //    @Autowired
 //    ElemeController elemeController;
 //    private int once = 1;
@@ -28,7 +28,6 @@ public class ScheduledTasks {
 //
 //    @Scheduled(fixedDelay = 86400000)
 //    public void initHb() {
-//        List<ElemeHb> elemeHbList = elemeController.getHb(1);
 //        once = 0;
 //    }
 //

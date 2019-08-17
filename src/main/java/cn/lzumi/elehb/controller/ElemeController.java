@@ -55,6 +55,9 @@ public class ElemeController {
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         String strBody = restTemplate.exchange(elemeNumUrl + sn, HttpMethod.GET, entity, String.class).getBody();
         JSONObject jsonObject = JSON.parseObject(strBody);
+        if (jsonObject.get("lucky_number") == null) {
+            return 404;
+        }
         return jsonObject.get("lucky_number");
     }
 
@@ -86,10 +89,19 @@ public class ElemeController {
     @PostMapping("/get_all")
     @ApiOperation(value = "领取红包", tags = {"饿了么"})
     public Object getAllHb(String sn, String name) {
+//        logger.info(sn);
+//        sn = elemeUtils.getSnByUrl(sn);
+//        logger.info(sn);
         //初始化cookies
         elemeCookies = elemeUtils.elemeCookiesInit(elemeCookies);
         int luckyNumber = (int) getLuckyNumber(sn);
         int nowNumber = (int) getNowNumber(sn);
+        if (luckyNumber == 404) {
+            logger.info("红包{}不存在", sn);
+            return "红包链接不存在";
+        }else if(nowNumber == 500){
+            return "服务器出错，请联系管理员解决";
+        }
         logger.debug("红包{}的领取状况：{}/{}", sn, nowNumber, luckyNumber);
         //循环领取红包、直到最大红包前一个
         for (int i = 0; luckyNumber > nowNumber + 1 && i < elemeCookies.size(); i++) {
@@ -135,13 +147,20 @@ public class ElemeController {
         //指定工具人小号
         elemeUtils.requestInit(requestHeaders, requestBody,
                 "eFYsvCamsdNkx22MqVQbG3Y5m8BbxYeaIhqA", "cd5dc635f37194eb3b8f59110653311f", sn);
-        //添加hearer和body，发送post请求
-        ResponseEntity<String> responseEntity =
-                restTemplate.exchange(getElemeUrl + openId, HttpMethod.POST,
-                        new HttpEntity<>(requestBody, requestHeaders), String.class);
-        JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
-        JSONArray jsonArray = JSONArray.parseArray(jsonObject.get("promotion_records").toString());
-        return jsonArray.size();
+        try {
+            //添加hearer和body，发送post请求
+            ResponseEntity<String> responseEntity =
+                    restTemplate.exchange(getElemeUrl + openId, HttpMethod.POST,
+                            new HttpEntity<>(requestBody, requestHeaders), String.class);
+            JSONObject jsonObject = JSON.parseObject(responseEntity.getBody());
+            logger.info(jsonObject.toJSONString());
+            JSONArray jsonArray = JSONArray.parseArray(jsonObject.get("promotion_records").toString());
+            return jsonArray.size();
+        } catch (Exception e) {
+            // 401 Unauthorized 是手机号失效, 400是qq失效(正常情况不会出现)
+            logger.error("工具人小号出现异常，请尽快处理：{}", e.toString());
+            return 500;
+        }
     }
 
     /**
