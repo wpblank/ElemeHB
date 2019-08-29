@@ -6,7 +6,7 @@ package cn.lzumi.elehb.bean;
  */
 public class ElemeStarCookie {
     private int id;
-    private String cookie;
+    public String cookie;
     /**
      * 一天内该cookie使用次数
      */

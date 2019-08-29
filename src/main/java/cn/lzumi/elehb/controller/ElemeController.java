@@ -89,9 +89,6 @@ public class ElemeController {
     @PostMapping("/get_all")
     @ApiOperation(value = "领取红包", tags = {"饿了么"})
     public Object getAllHb(String sn, String name) {
-//        logger.info(sn);
-//        sn = elemeUtils.getSnByUrl(sn);
-//        logger.info(sn);
         //初始化cookies
         elemeCookies = elemeUtils.elemeCookiesInit(elemeCookies);
         int luckyNumber = (int) getLuckyNumber(sn);
@@ -109,7 +106,6 @@ public class ElemeController {
             if (elemeCookies.get(i).getTodayUse() < 5) {
                 JSONObject jsonObject = elemeUtils.getOne(sn, elemeCookies.get(i));
                 logger.debug((jsonObject.toJSONString()));
-                logger.info((jsonObject.toJSONString()));
                 switch (jsonObject.getInteger("ret_code")) {
                     case 2:
                         logger.info("该cookie领取过此红包,id={}", elemeCookies.get(i).getId());

@@ -16,6 +16,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,8 +57,7 @@ public class ElemeStarUtils {
         caseid = "caseid=" + caseid + "&";
         sign = "sign=" + sign;
         //数据库读
-        String cookie = "WMID=f0f071c9a70a4b73d1026b141521a9eb; whid=WWNNR0N4N1RqdzNhNHRaUWZXcjhJa0tuZWJ6QnBlbll4VFdGS1MwRm1aMjkwZEdSaFVHRkpiMDlSTUU5Mk5BPT0%3D; WMST=1567060390";
-        //String cookie = elemeStarCookie.get;
+        String cookie = elemeStarCookie.cookie;
         HttpHeaders requestHeaders = new HttpHeaders();
 
         //初始化requestHeaders和requestBody
@@ -65,7 +65,7 @@ public class ElemeStarUtils {
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (getElemeStarUrl + caseid + sign, HttpMethod.GET, requestEntity, String.class);
-        logger.info(responseEntity.toString());
+        logger.debug(responseEntity.toString());
         return responseEntity.getBody();
     }
 
@@ -87,6 +87,17 @@ public class ElemeStarUtils {
         } else {
             logger.error("饿了么星选红包领取个数获取失败:{}",matcher.group(0));
             return -1;
+        }
+    }
+
+    public List<ElemeStarCookie> elemeStarCookiesInit(List<ElemeStarCookie> elemeStarCookies) {
+        //如果cookies不存在或者数量小于10，则向数据库请求获得新的cookies
+        if (elemeStarCookies == null || elemeStarCookies.size() < 5) {
+            //elemeCookies = elemeMapper.getElemeCookies(COOKIE_NUM);
+            logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
+            return elemeStarCookies;
+        } else {
+            return elemeStarCookies;
         }
     }
 }
