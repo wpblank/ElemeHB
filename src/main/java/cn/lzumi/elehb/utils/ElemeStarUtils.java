@@ -39,7 +39,6 @@ public class ElemeStarUtils {
     public void requestInit(HttpHeaders requestHeaders, String cookie) {
         requestHeaders.add("Accept", "*/*");
         requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 9; MIX 3 Build/PKQ1.180729.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/044813 Mobile Safari/537.36 MMWEBID/8168 MicroMessenger/7.0.5.1440(0x27000534) Process/tools NetType/WIFI Language/zh_CN");
-        //requestHeaders.add("Accept-Language", "zh-CN,zh-HK;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6,zh-TW;q=0.5");
         requestHeaders.add("Connection", "Keep-Alive");
         requestHeaders.add("Cookie", cookie);
     }
@@ -49,32 +48,34 @@ public class ElemeStarUtils {
      *
      * @param caseid
      * @param sign
-     * @param elemeStarCookie
-     * @return
+     * @param elemeStarCookie 饿了么星选cookie
+     * @return 当前领取个数
      */
-    public String getOne(String caseid, String sign, ElemeStarCookie elemeStarCookie) {
+    public int getOne(String caseid, String sign, ElemeStarCookie elemeStarCookie) {
         String getElemeStarUrl = "https://star.ele.me/hongbao/wpshare?";
         caseid = "caseid=" + caseid + "&";
         sign = "sign=" + sign;
-        //数据库读
         String cookie = elemeStarCookie.cookie;
         HttpHeaders requestHeaders = new HttpHeaders();
-
-        //初始化requestHeaders和requestBody
+        //初始化requestHeaders
         requestInit(requestHeaders, cookie);
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (getElemeStarUrl + caseid + sign, HttpMethod.GET, requestEntity, String.class);
         logger.debug(responseEntity.toString());
-        return responseEntity.getBody();
+        return getNowNumberFromHtml(responseEntity.getBody());
     }
 
-    public void getMaxNumberFromHtml(String html){
+    public void getMaxNumberFromHtml(String html) {
 
 
     }
 
-    public int getNowNumberFromHtml(String html){
+    /**
+     * @param html
+     * @return 当前领取个数
+     */
+    public int getNowNumberFromHtml(String html) {
         // 在字符串中匹配：friends_info (已领取人员信息)
         String patternStr = "\"friends_info\":.*\\]";
         // 创建 Pattern 对象
@@ -85,7 +86,7 @@ public class ElemeStarUtils {
             JSONArray jsonArray = JSON.parseArray(matcher.group(0).substring(15));
             return jsonArray.size();
         } else {
-            logger.error("饿了么星选红包领取个数获取失败:{}",matcher.group(0));
+            logger.error("饿了么星选红包领取个数获取失败:{}", matcher.group(0));
             return -1;
         }
     }
