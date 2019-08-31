@@ -2,11 +2,13 @@ package cn.lzumi.elehb.utils;
 
 import cn.lzumi.elehb.bean.ElemeCookie;
 import cn.lzumi.elehb.bean.ElemeStarCookie;
+import cn.lzumi.elehb.mapper.ElemeStarMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -26,8 +28,11 @@ import java.util.regex.Pattern;
  */
 @Component
 public class ElemeStarUtils {
+    @Autowired
+    ElemeStarMapper elemeStarMapper;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    public final int COOKIE_NUM = 10;
     private RestTemplate restTemplate = new RestTemplate();
 
     /**
@@ -66,14 +71,30 @@ public class ElemeStarUtils {
         return getNowNumberFromHtml(responseEntity.getBody());
     }
 
-    public void getMaxNumberFromHtml(String html) {
-
-
+    /**
+     * 根据返回结果获取第几个是最大红包
+     *
+     * @param html 请求返回的html
+     * @return lucky_number
+     */
+    public int getMaxNumberFromHtml(String html) {
+        // 在字符串中匹配：【饿了么星选】第 (红包最大个数)
+        String patternStr = "【饿了么星选】第[0-9]{1,2}";
+        Pattern pattern = Pattern.compile(patternStr);
+        Matcher matcher = pattern.matcher(html);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(0).substring(8));
+        } else {
+            logger.error("饿了么星选红包最大个数获取失败:{}", matcher.group(0));
+            return -1;
+        }
     }
 
     /**
-     * @param html
-     * @return 当前领取个数
+     * 根据返回结果获取当前已领取红包个数
+     *
+     * @param html 请求返回的html
+     * @return 已领取个数
      */
     public int getNowNumberFromHtml(String html) {
         // 在字符串中匹配：friends_info (已领取人员信息)
@@ -91,10 +112,16 @@ public class ElemeStarUtils {
         }
     }
 
+    /**
+     * 初始化饿了么星选cookies
+     * 如果cookies不存在或者数量过少，则向数据库请求获得新的cookies
+     *
+     * @param elemeStarCookies 星选cookie列表
+     * @return
+     */
     public List<ElemeStarCookie> elemeStarCookiesInit(List<ElemeStarCookie> elemeStarCookies) {
-        //如果cookies不存在或者数量小于10，则向数据库请求获得新的cookies
         if (elemeStarCookies == null || elemeStarCookies.size() < 5) {
-            //elemeCookies = elemeMapper.getElemeCookies(COOKIE_NUM);
+            elemeStarCookies = elemeStarMapper.getElemeStarCookies(COOKIE_NUM);
             logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
             return elemeStarCookies;
         } else {

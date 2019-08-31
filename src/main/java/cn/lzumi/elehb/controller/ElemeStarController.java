@@ -40,8 +40,7 @@ public class ElemeStarController {
         //elemeStarCookies = elemeStarUtils.elemeStarCookiesInit(elemeStarCookies);
         elemeStarCookies.add(new ElemeStarCookie());
         elemeStarCookies.get(0).cookie = "WMID=f0f071c9a70a4b73d1026b141521a9eb; whid=WWNNR0N4N1RqdzNhNHRaUWZXcjhJa0tuZWJ6QnBlbll4VFdGS1MwRm1aMjkwZEdSaFVHRkpiMDlSTUU5Mk5BPT0%3D; WMST=1567060390";
-        String s = elemeStarUtils.getOne(caseid, sign, elemeStarCookies.get(0));
-        return elemeStarUtils.getNowNumberFromHtml(s);
+        return elemeStarUtils.getOne(caseid, sign, elemeStarCookies.get(0));
     }
 
     /**

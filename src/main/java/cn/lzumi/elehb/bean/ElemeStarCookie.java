@@ -10,7 +10,7 @@ public class ElemeStarCookie {
     /**
      * 一天内该cookie使用次数
      */
-    private int todayUse;
+    public int todayUse;
     /**
      * 总共领取了多少次
      */
