@@ -1,10 +1,12 @@
 server:
   port: 8081
 spring:
+  profiles:
+    include: my-config
   datasource:
-    url:
-    username:
-    password: 
+    # url: 填写自己的数据库地址
+    # username:
+    # password:
     driver-class-name: com.mysql.cj.jdbc.Driver
 mybatis:
   mapper-locations: classpath:mapper/**/*Mapper.xml

@@ -32,15 +32,17 @@ public class ElemeStarController {
 
     /**
      * 领取一次红包
+     * @return 当前领取个数
      */
     @GetMapping("/get_one")
     @ApiOperation(value = "领取一次红包", tags = {"饿了么星选"})
     public Object getOneHb(String caseid, String sign) {
         //初始化cookies
-        //elemeStarCookies = elemeStarUtils.elemeStarCookiesInit(elemeStarCookies);
-        elemeStarCookies.add(new ElemeStarCookie());
-        elemeStarCookies.get(0).cookie = "WMID=f0f071c9a70a4b73d1026b141521a9eb; whid=WWNNR0N4N1RqdzNhNHRaUWZXcjhJa0tuZWJ6QnBlbll4VFdGS1MwRm1aMjkwZEdSaFVHRkpiMDlSTUU5Mk5BPT0%3D; WMST=1567060390";
-        return elemeStarUtils.getOne(caseid, sign, elemeStarCookies.get(0));
+        elemeStarCookies = elemeStarUtils.elemeStarCookiesInit(elemeStarCookies);
+//        elemeStarCookies.add(new ElemeStarCookie());
+//        elemeStarCookies.get(0).cookie = "WMID=f0f071c9a70a4b73d1026b141521a9eb; whid=WWNNR0N4N1RqdzNhNHRaUWZXcjhJa0tuZWJ6QnBlbll4VFdGS1MwRm1aMjkwZEdSaFVHRkpiMDlSTUU5Mk5BPT0%3D; WMST=1567060390";
+        String result = elemeStarUtils.getOne(caseid, sign, elemeStarCookies.get(0));
+        return elemeStarUtils.getNowNumberFromHtml(result);
     }
 
     /**

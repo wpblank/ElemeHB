@@ -54,9 +54,9 @@ public class ElemeStarUtils {
      * @param caseid
      * @param sign
      * @param elemeStarCookie 饿了么星选cookie
-     * @return 当前领取个数
+     * @return html
      */
-    public int getOne(String caseid, String sign, ElemeStarCookie elemeStarCookie) {
+    public String getOne(String caseid, String sign, ElemeStarCookie elemeStarCookie) {
         String getElemeStarUrl = "https://star.ele.me/hongbao/wpshare?";
         caseid = "caseid=" + caseid + "&";
         sign = "sign=" + sign;
@@ -68,7 +68,7 @@ public class ElemeStarUtils {
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (getElemeStarUrl + caseid + sign, HttpMethod.GET, requestEntity, String.class);
         logger.debug(responseEntity.toString());
-        return getNowNumberFromHtml(responseEntity.getBody());
+        return responseEntity.getBody();
     }
 
     /**

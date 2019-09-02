@@ -1,8 +1,12 @@
 package cn.lzumi.elehb.scheduled;
 
+import cn.lzumi.elehb.bean.ElemeCookie;
 import cn.lzumi.elehb.bean.ElemeHb;
+import cn.lzumi.elehb.bean.ElemeStarCookie;
 import cn.lzumi.elehb.controller.ElemeController;
+import cn.lzumi.elehb.controller.ElemeStarController;
 import cn.lzumi.elehb.mapper.ElemeMapper;
+import cn.lzumi.elehb.utils.ElemeStarUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +25,21 @@ import java.util.List;
 @Component
 public class ScheduledTasks {
 
-//    @Autowired
-//    ElemeController elemeController;
-//    private int once = 1;
-//    private final Logger logger = LoggerFactory.getLogger(getClass());
+    @Autowired
+    ElemeController elemeController;
+    @Autowired
+    ElemeStarController elemeStarController;
+    @Autowired
+    ElemeStarUtils elemeStarUtils;
+    private int once = 1;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private ElemeStarCookie elemeStarCookie = new ElemeStarCookie();
+
+    @Scheduled(fixedDelay = 60000)
+    public void getElemeStarHb(){
+        elemeStarCookie.cookie = "WMID=7d618e17882db95b74c92e3add15b306; whid=cjFHN2p6UFNFZkZUcGtldGxyS2I0UnZCSllpTzZRTWFBdVh4RGNJeU5MOW93OFYyM2RXMFVDYnpCcGVuWXhRVGxmTURCcFZtUmFRbnBTV2s1MGVuRkJSblJZVFE9PQ%3D%3D; WMST=1567421042";
+        String result = elemeStarUtils.getOne()
+    }
 //
 //    @Scheduled(fixedDelay = 86400000)
 //    public void initHb() {
