@@ -23,4 +23,13 @@ public interface ElemeStarMapper {
      */
     @Select("select * from eleme_star_cookie where today_use<5 and is_user=0 limit #{num}")
     List<ElemeStarCookie> getElemeStarCookies(@Param("num") int num);
+
+    /**
+     * 获取用户的饿了么星选cookie
+     *
+     * @param name 用户名
+     * @return 饿了么星选cookie
+     */
+    @Select("SELECT e.* FROM eleme_star_cookie e,`user` u WHERE e.id=u.eleme_star_cookie_id and u.`name`=#{name}")
+    ElemeStarCookie getUserElemeStarCookie(@Param("name") String name);
 }
