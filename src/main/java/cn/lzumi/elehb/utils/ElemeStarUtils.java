@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
 import java.awt.event.WindowFocusListener;
@@ -61,22 +62,18 @@ public class ElemeStarUtils {
     /**
      * 领取一次饿了么星选红包
      *
-     * @param caseid
-     * @param sign
+     * @param elemeStarHb     饿了么星选红包
      * @param elemeStarCookie 饿了么星选cookie
      * @return html
      */
-    public String getOne(String caseid, String sign, ElemeStarCookie elemeStarCookie) {
-        String getElemeStarUrl = "https://star.ele.me/hongbao/wpshare?";
-        caseid = "caseid=" + caseid + "&";
-        sign = "sign=" + sign;
+    public String getOne(ElemeStarHb elemeStarHb, ElemeStarCookie elemeStarCookie) {
         String cookie = elemeStarCookie.cookie;
         HttpHeaders requestHeaders = new HttpHeaders();
         //初始化requestHeaders
         requestInit(requestHeaders, cookie, elemeStarCookie.app);
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
-                (getElemeStarUrl + caseid + sign, HttpMethod.GET, requestEntity, String.class);
+                (elemeStarHb.url, HttpMethod.GET, requestEntity, String.class);
         logger.debug(responseEntity.toString());
         return responseEntity.getBody();
     }
@@ -84,27 +81,26 @@ public class ElemeStarUtils {
     /**
      * 领取饿了么星选红包
      *
-     * @param caseid
-     * @param sign
+     * @param elemeStarHb
      * @param elemeStarCookies
-     * @param userElemeStarCookie
+     * @param userElemeStarCookie 想要领取最大红包的cookie
      * @return
      */
-    public String getAllHb(String caseid, String sign, List<ElemeStarCookie> elemeStarCookies, ElemeStarCookie userElemeStarCookie) {
-        String result = getOne(caseid, sign, elemeStarCookies.get(0));
+    public String getAllHb(ElemeStarHb elemeStarHb, List<ElemeStarCookie> elemeStarCookies, ElemeStarCookie userElemeStarCookie) {
+        String result = getOneByUtil(elemeStarHb);
         int luckyNum = getLuckyNumberFromHtml(result);
         int nowNum = getNowNumberFromHtml(result);
         if (luckyNum - nowNum < 1) {
-            logger.info("红包已被领取{}/{},caseid:{},sign:{}", nowNum, luckyNum, caseid, sign);
+            logger.info("红包已被领取{}/{},{}", nowNum, luckyNum, elemeStarHb.url);
         } else if (luckyNum - nowNum > 1) {
             for (int i = 1; luckyNum - nowNum > 1 && i < elemeStarCookies.size(); i++) {
-                nowNum = getNowNumberFromHtml(getOne(caseid, sign, elemeStarCookies.get(i)));
+                nowNum = getNowNumberFromHtml(getOne(elemeStarHb, elemeStarCookies.get(i)));
             }
         }
         if (luckyNum - nowNum == 1) {
-            return getOne(caseid, sign, userElemeStarCookie);
+            return getOne(elemeStarHb, userElemeStarCookie);
         } else {
-            return "红包领取失败:" + nowNum + "/" + luckyNum + ",caseid:" + caseid + ",sign:" + sign;
+            return "红包领取失败:" + nowNum + "/" + luckyNum + "," + elemeStarHb.url;
         }
     }
 
@@ -153,28 +149,35 @@ public class ElemeStarUtils {
     /**
      * 通过工具人小号，查询红包信息
      *
-     * @param caseid
-     * @param sign
+     * @param elemeStarHb
      * @return
      */
-    public String getOneByUtil(String caseid, String sign) {
-        String getElemeStarUrl = "https://star.ele.me/hongbao/wpshare?";
-        caseid = "caseid=" + caseid + "&";
-        sign = "sign=" + sign;
+    public String getOneByUtil(ElemeStarHb elemeStarHb) {
         HttpHeaders requestHeaders = new HttpHeaders();
         //初始化requestHeaders
         requestInit(requestHeaders, utilElemeStarCookie, 0);
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
-                (getElemeStarUrl + caseid + sign, HttpMethod.GET, requestEntity, String.class);
+                (elemeStarHb.url, HttpMethod.GET, requestEntity, String.class);
         logger.debug(responseEntity.toString());
         return responseEntity.getBody();
     }
 
-//    public ElemeStarHb elemeStarHbInit(String url) {
-//        ElemeStarHb elemeStarHb = new ElemeStarHb();
-//        elemeStarHb.url = url;
-//    }
+    public ElemeStarHb elemeStarHbInit(String caseid, String sign, MultiValueMap<String, String> requestBody) {
+        if (requestBody != null && requestBody.containsKey("url")) {
+            //String caseid
+            String url = requestBody.get("url").get(0);
+            //注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
+            caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);
+            sign = url.substring(url.indexOf("sign=") + 5, url.indexOf("sign=") + 37);
+            return new ElemeStarHb(url, caseid, sign);
+        } else if (caseid != null && sign != null) {
+            String url = "https://star.ele.me/hongbao/wpshare?caseid=" + caseid + "&sign=" + sign;
+            return new ElemeStarHb(url, caseid, sign);
+        } else {
+            return new ElemeStarHb(null, null, null);
+        }
+    }
 
     /**
      * 初始化饿了么星选cookies

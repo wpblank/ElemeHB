@@ -2,6 +2,7 @@ package cn.lzumi.elehb.controller;
 
 import cn.lzumi.elehb.bean.ElemeCookie;
 import cn.lzumi.elehb.bean.ElemeStarCookie;
+import cn.lzumi.elehb.bean.ElemeStarHb;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
 import cn.lzumi.elehb.utils.ElemeStarUtils;
 import com.alibaba.fastjson.JSONObject;
@@ -33,17 +34,8 @@ public class ElemeStarController {
 
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么星选红包领取", tags = {"饿了么星选"})
-    public String get(String caseid, String sign,
-                      @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
-        if (requestBody != null && requestBody.containsKey("url")) {
-            //String caseid
-            return requestBody.get("url").get(0);
-        } else if (caseid != null && sign != null) {
-            return caseid + " " + sign;
-        } else {
-            return "啥也你没有";
-        }
-
+    public Object get() {
+        return "欢迎使用饿了么星选红包领取";
     }
 
     /**
@@ -53,10 +45,12 @@ public class ElemeStarController {
      */
     @GetMapping("/get_one")
     @ApiOperation(value = "领取一次红包", tags = {"饿了么星选"})
-    public Object getOneHb(String caseid, String sign) {
+    public Object getOneHb(String caseid, String sign,
+                           @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
+        ElemeStarHb elemeStarHb = elemeStarUtils.elemeStarHbInit(caseid, sign, requestBody);
         //初始化cookies
         elemeStarCookies = elemeStarUtils.elemeStarCookiesInit(elemeStarCookies);
-        String result = elemeStarUtils.getOne(caseid, sign, elemeStarCookies.get(0));
+        String result = elemeStarUtils.getOne(elemeStarHb, elemeStarCookies.get(0));
         return elemeStarUtils.getNowNumberFromHtml(result);
     }
 
@@ -70,17 +64,21 @@ public class ElemeStarController {
      */
     @GetMapping("/get_all")
     @ApiOperation(value = "领取红包", tags = {"饿了么星选"})
-    public Object getAllHb(String caseid, String sign, String name) {
+    public Object getAllHb(String caseid, String sign, String name,
+                           @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
+        ElemeStarHb elemeStarHb = elemeStarUtils.elemeStarHbInit(caseid, sign, requestBody);
         //初始化cookies
         elemeStarCookies = elemeStarUtils.elemeStarCookiesInit(elemeStarCookies);
         ElemeStarCookie userElemeStarCookie = elemeStarMapper.getUserElemeStarCookie(name);
-        return elemeStarUtils.getAllHb(caseid, sign, elemeStarCookies, userElemeStarCookie);
+        return elemeStarUtils.getAllHb(elemeStarHb, elemeStarCookies, userElemeStarCookie);
     }
 
     @GetMapping("/get_number")
     @ApiOperation(value = "查询红包当前领取数量", tags = {"饿了么星选"})
-    public String getHbNumber(String caseid, String sign) {
-        String result = elemeStarUtils.getOneByUtil(caseid, sign);
+    public String getHbNumber(String caseid, String sign,
+                              @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
+        ElemeStarHb elemeStarHb = elemeStarUtils.elemeStarHbInit(caseid, sign, requestBody);
+        String result = elemeStarUtils.getOneByUtil(elemeStarHb);
         int luckyNum = elemeStarUtils.getLuckyNumberFromHtml(result);
         int nowNum = elemeStarUtils.getNowNumberFromHtml(result);
         return "红包领取状态:" + nowNum + "/" + luckyNum;
