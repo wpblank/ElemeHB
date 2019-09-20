@@ -187,7 +187,7 @@ public class ElemeController {
     public Object getCookie() {
         List<ElemeCookie> elemeCookies = elemeMapper.getElemeCookies(elemeUtils.COOKIE_NUM);
         for (ElemeCookie elemeCookie : elemeCookies) {
-            System.out.println(elemeCookie.getOpenId());
+            logger.info(elemeCookie.getOpenId());
         }
         return elemeCookies.get(0).getWeixinAvatar();
     }

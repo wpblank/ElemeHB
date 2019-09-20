@@ -1,17 +1,20 @@
 package cn.lzumi.elehb.bean;
 
+import lombok.Data;
+
 /**
  * @author izumi
  * @date 2019-08-29 15:34:38
  */
+@Data
 public class ElemeStarCookie {
     private int id;
-    public String cookie;
-    public int app;
+    private String cookie;
+    private int app;
     /**
      * 一天内该cookie使用次数
      */
-    public int todayUse;
+    private int todayUse;
     /**
      * 总共领取了多少次
      */

@@ -1,13 +1,16 @@
 package cn.lzumi.elehb.bean;
 
+import lombok.Data;
+
 /**
  * @author pyrde
  */
+@Data
 public class ElemeStarHb {
-    public int id;
-    public String url;
-    public String caseid;
-    public String sign;
+    private int id;
+    private String url;
+    private String caseid;
+    private String sign;
 
     public ElemeStarHb(String url, String caseid, String sign) {
         this.url = url;

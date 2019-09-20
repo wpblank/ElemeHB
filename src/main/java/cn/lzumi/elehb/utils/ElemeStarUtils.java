@@ -67,13 +67,13 @@ public class ElemeStarUtils {
      * @return html
      */
     public String getOne(ElemeStarHb elemeStarHb, ElemeStarCookie elemeStarCookie) {
-        String cookie = elemeStarCookie.cookie;
+        String cookie = elemeStarCookie.getCookie();
         HttpHeaders requestHeaders = new HttpHeaders();
         //初始化requestHeaders
-        requestInit(requestHeaders, cookie, elemeStarCookie.app);
+        requestInit(requestHeaders, cookie, elemeStarCookie.getApp());
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
-                (elemeStarHb.url, HttpMethod.GET, requestEntity, String.class);
+                (elemeStarHb.getUrl(), HttpMethod.GET, requestEntity, String.class);
         logger.debug(responseEntity.toString());
         return responseEntity.getBody();
     }
@@ -91,7 +91,7 @@ public class ElemeStarUtils {
         int luckyNum = getLuckyNumberFromHtml(result);
         int nowNum = getNowNumberFromHtml(result);
         if (luckyNum - nowNum < 1) {
-            logger.info("红包已被领取{}/{},{}", nowNum, luckyNum, elemeStarHb.url);
+            logger.info("红包已被领取{}/{},{}", nowNum, luckyNum, elemeStarHb.getUrl());
         } else if (luckyNum - nowNum > 1) {
             for (int i = 1; luckyNum - nowNum > 1 && i < elemeStarCookies.size(); i++) {
                 nowNum = getNowNumberFromHtml(getOne(elemeStarHb, elemeStarCookies.get(i)));
@@ -100,7 +100,7 @@ public class ElemeStarUtils {
         if (luckyNum - nowNum == 1) {
             return getOne(elemeStarHb, userElemeStarCookie);
         } else {
-            return "红包领取失败:" + nowNum + "/" + luckyNum + "," + elemeStarHb.url;
+            return "红包领取失败:" + nowNum + "/" + luckyNum + "," + elemeStarHb.getUrl();
         }
     }
 
@@ -158,7 +158,7 @@ public class ElemeStarUtils {
         requestInit(requestHeaders, utilElemeStarCookie, 0);
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
-                (elemeStarHb.url, HttpMethod.GET, requestEntity, String.class);
+                (elemeStarHb.getUrl(), HttpMethod.GET, requestEntity, String.class);
         logger.debug(responseEntity.toString());
         return responseEntity.getBody();
     }

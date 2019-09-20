@@ -1,12 +1,15 @@
 package cn.lzumi.elehb.bean;
 
+import lombok.Data;
+
 /**
  * @author izumi
  */
+@Data
 public class ElemeHb {
     private int id;
     private String url;
-    public String sn;
+    private String sn;
     private int isGet;
     private int maxNum;
     private int nowNum;
@@ -18,61 +21,5 @@ public class ElemeHb {
         this.isGet = isGet;
         this.maxNum = maxNum;
         this.nowNum = nowNum;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getSn() {
-        return sn;
-    }
-
-    public void setSn(String sn) {
-        this.sn = sn;
-    }
-
-    public int getIsGet() {
-        return isGet;
-    }
-
-    public void setIsGet(int isGet) {
-        this.isGet = isGet;
-    }
-
-    public int getMaxNum() {
-        return maxNum;
-    }
-
-    public void setMaxNum(int maxNum) {
-        this.maxNum = maxNum;
-    }
-
-    public int getNowNum() {
-        return nowNum;
-    }
-
-    public void setNowNum(int nowNum) {
-        this.nowNum = nowNum;
-    }
-
-    public String getGetTime() {
-        return getTime;
-    }
-
-    public void setGetTime(String getTime) {
-        this.getTime = getTime;
     }
 }
