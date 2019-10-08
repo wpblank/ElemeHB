@@ -8,6 +8,7 @@ import cn.lzumi.elehb.utils.ElemeStarUtils;
 import com.alibaba.fastjson.JSONObject;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.util.MultiValueMap;
@@ -30,12 +31,15 @@ public class ElemeStarController {
     @Autowired
     ElemeStarMapper elemeStarMapper;
 
+    @Value("${cn.lzumi.elehb}")
+    public String eleme;
+
     private List<ElemeStarCookie> elemeStarCookies = new ArrayList<>();
 
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么星选红包领取", tags = {"饿了么星选"})
     public Object get() {
-        return "欢迎使用饿了么星选红包领取";
+        return eleme;
     }
 
     /**

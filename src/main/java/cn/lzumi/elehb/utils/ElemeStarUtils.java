@@ -47,13 +47,19 @@ public class ElemeStarUtils {
      *
      * @param requestHeaders 请求头
      * @param cookie
+     * @param app            0:微信 1:钉钉
      */
     public void requestInit(HttpHeaders requestHeaders, String cookie, int app) {
         requestHeaders.add("Accept", "*/*");
-        if (app == 0) {
-            requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 9; MIX 3 Build/PKQ1.180729.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/044813 Mobile Safari/537.36 MMWEBID/8168 MicroMessenger/7.0.5.1440(0x27000534) Process/tools NetType/WIFI Language/zh_CN");
-        } else if (app == 1) {
-            requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; U; Android 9; zh-CN; MIX 3 Build/PKQ1.180729.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.108 UCBrowser/11.9.4.974 UWS/2.13.2.46 Mobile Safari/537.36 AliApp(DingTalk/4.7.7) com.alibaba.android.rimet/11964676 Channel/700159 language/zh-CN");
+        switch (app){
+            case 0:
+                requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 9; MIX 3 Build/PKQ1.180729.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/044813 Mobile Safari/537.36 MMWEBID/8168 MicroMessenger/7.0.5.1440(0x27000534) Process/tools NetType/WIFI Language/zh_CN");
+                break;
+            case 1:
+                requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; U; Android 9; zh-CN; MIX 3 Build/PKQ1.180729.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.108 UCBrowser/11.9.4.974 UWS/2.13.2.46 Mobile Safari/537.36 AliApp(DingTalk/4.7.7) com.alibaba.android.rimet/11964676 Channel/700159 language/zh-CN");
+                break;
+            default:
+                break;
         }
         requestHeaders.add("Connection", "Keep-Alive");
         requestHeaders.add("Cookie", cookie);
@@ -93,7 +99,7 @@ public class ElemeStarUtils {
         if (luckyNum - nowNum < 1) {
             logger.info("红包已被领取{}/{},{}", nowNum, luckyNum, elemeStarHb.getUrl());
         } else if (luckyNum - nowNum > 1) {
-            for (int i = 1; luckyNum - nowNum > 1 && i < elemeStarCookies.size(); i++) {
+            for (int i = 0; luckyNum - nowNum > 1 && i < elemeStarCookies.size(); i++) {
                 nowNum = getNowNumberFromHtml(getOne(elemeStarHb, elemeStarCookies.get(i)));
             }
         }
@@ -165,7 +171,6 @@ public class ElemeStarUtils {
 
     public ElemeStarHb elemeStarHbInit(String caseid, String sign, MultiValueMap<String, String> requestBody) {
         if (requestBody != null && requestBody.containsKey("url")) {
-            //String caseid
             String url = requestBody.get("url").get(0);
             //注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
             caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);

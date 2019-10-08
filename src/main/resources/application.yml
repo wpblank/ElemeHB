@@ -14,5 +14,5 @@ mybatis:
     map-underscore-to-camel-case: true
 cn:
   lzumi:
-    elehb: 欢迎使用饿了么红包领取
+  #  elehb: 欢迎使用饿了么红包领取
   # utilElemeStarCookie:  填写用于查询领取个数的饿了么星选Cookie
