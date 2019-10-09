@@ -20,9 +20,9 @@ public class ElemeStarCookie {
      */
     private int totalUse;
     /**
-     * 领取失败次数，用于判断是否失效
+     * 用于判断是否失效,1为失效
      */
-    private int loseEfficacy;
+    private int isLose;
     /**
      * 是否是某一用户的cookie 0:不是 1:是
      */

@@ -51,7 +51,7 @@ public class ElemeStarUtils {
      */
     public void requestInit(HttpHeaders requestHeaders, String cookie, int app) {
         requestHeaders.add("Accept", "*/*");
-        switch (app){
+        switch (app) {
             case 0:
                 requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 9; MIX 3 Build/PKQ1.180729.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/044813 Mobile Safari/537.36 MMWEBID/8168 MicroMessenger/7.0.5.1440(0x27000534) Process/tools NetType/WIFI Language/zh_CN");
                 break;
@@ -169,6 +169,14 @@ public class ElemeStarUtils {
         return responseEntity.getBody();
     }
 
+    /**
+     * 组装星选红包
+     *
+     * @param caseid
+     * @param sign
+     * @param requestBody
+     * @return ElemeStarHb
+     */
     public ElemeStarHb elemeStarHbInit(String caseid, String sign, MultiValueMap<String, String> requestBody) {
         if (requestBody != null && requestBody.containsKey("url")) {
             String url = requestBody.get("url").get(0);
@@ -187,12 +195,14 @@ public class ElemeStarUtils {
     /**
      * 初始化饿了么星选cookies
      * 如果cookies不存在或者数量过少，则向数据库请求获得新的cookies
+     * 同时将旧cookie的使用次数更新至数据库
      *
      * @param elemeStarCookies 星选cookie列表
      * @return
      */
     public List<ElemeStarCookie> elemeStarCookiesInit(List<ElemeStarCookie> elemeStarCookies) {
         if (elemeStarCookies == null || elemeStarCookies.size() < 5) {
+            // logger.info("");
             elemeStarCookies = elemeStarMapper.getElemeStarCookies(COOKIE_NUM);
             logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
             return elemeStarCookies;

@@ -31,7 +31,7 @@ public class SwaggerConfig {
                 .title("外卖红包🧧")
                 .description("欢迎前往个人博客游玩：http://lzumi.cn")
                 //.termsOfServiceUrl("http://blog.didispace.com/")
-                .version("1.0")
+                .version("1.3.1")
                 .build();
     }
 }
