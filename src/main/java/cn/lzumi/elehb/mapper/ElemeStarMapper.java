@@ -37,19 +37,14 @@ public interface ElemeStarMapper {
     /**
      * 更新星选cookie的使用次数信息
      *
-     * @param todayUse
-     * @param totalUse
-     * @param id
+     * @param elemeStarCookies
      * @return 更新数量
      */
-    @Update("UPDATE eleme_star_cookie SET today_use=#{today_use},total_use=#{total_use} " +
-            "WHERE id=#{id}")
-    int updateElemeStarCookieUseInfo(@Param("today_use") int todayUse,
-                                     @Param("total_use") int totalUse,
-                                     @Param("id") int id);
+    int updateElemeStarCookieUseInfo(List<ElemeStarCookie> elemeStarCookies);
 
     /**
      * 将所有星选cookie的今日使用次数清空
+     *
      * @return
      */
     @Update("UPDATE eleme_star_cookie SET today_use=0")

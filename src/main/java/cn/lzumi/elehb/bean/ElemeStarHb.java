@@ -3,7 +3,7 @@ package cn.lzumi.elehb.bean;
 import lombok.Data;
 
 /**
- * @author pyrde
+ * @author izumi
  */
 @Data
 public class ElemeStarHb {

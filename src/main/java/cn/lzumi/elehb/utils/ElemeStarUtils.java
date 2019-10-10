@@ -81,6 +81,7 @@ public class ElemeStarUtils {
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (elemeStarHb.getUrl(), HttpMethod.GET, requestEntity, String.class);
         logger.debug(responseEntity.toString());
+        elemeStarCookie.add();
         return responseEntity.getBody();
     }
 
@@ -103,8 +104,13 @@ public class ElemeStarUtils {
                 nowNum = getNowNumberFromHtml(getOne(elemeStarHb, elemeStarCookies.get(i)));
             }
         }
+        // 判断是否领取完毕
         if (luckyNum - nowNum == 1) {
-            return getOne(elemeStarHb, userElemeStarCookie);
+            if (userElemeStarCookie == null) {
+                return "红包已领取到最大前一个:" + nowNum + "/" + luckyNum + "," + elemeStarHb.getUrl();
+            } else {
+                return getOne(elemeStarHb, userElemeStarCookie);
+            }
         } else {
             return "红包领取失败:" + nowNum + "/" + luckyNum + "," + elemeStarHb.getUrl();
         }
@@ -201,8 +207,12 @@ public class ElemeStarUtils {
      * @return
      */
     public List<ElemeStarCookie> elemeStarCookiesInit(List<ElemeStarCookie> elemeStarCookies) {
-        if (elemeStarCookies == null || elemeStarCookies.size() < 5) {
-            // logger.info("");
+        if (elemeStarCookies.size() == 0) {
+            elemeStarCookies = elemeStarMapper.getElemeStarCookies(COOKIE_NUM);
+            logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
+            return elemeStarCookies;
+        } else if (elemeStarCookies.size() < 5) {
+            logger.info("更新星选信息条数:{}", elemeStarMapper.updateElemeStarCookieUseInfo(elemeStarCookies));
             elemeStarCookies = elemeStarMapper.getElemeStarCookies(COOKIE_NUM);
             logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
             return elemeStarCookies;

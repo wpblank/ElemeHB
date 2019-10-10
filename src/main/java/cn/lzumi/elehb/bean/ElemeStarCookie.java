@@ -27,4 +27,9 @@ public class ElemeStarCookie {
      * 是否是某一用户的cookie 0:不是 1:是
      */
     private int isUser;
+
+    public void add() {
+        todayUse++;
+        totalUse++;
+    }
 }
