@@ -11,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -22,9 +19,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
 import java.awt.event.WindowFocusListener;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static cn.lzumi.elehb.utils.ResponseUtils.*;
 
 /**
  * @author izumi
@@ -81,7 +82,10 @@ public class ElemeStarUtils {
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (elemeStarHb.getUrl(), HttpMethod.GET, requestEntity, String.class);
         logger.debug(responseEntity.toString());
-        elemeStarCookie.add();
+        // 领取成功, cookie使用次数+1
+        if (SUCCESS == getStatus(responseEntity.getBody())) {
+            elemeStarCookie.add();
+        }
         return responseEntity.getBody();
     }
 
@@ -93,12 +97,17 @@ public class ElemeStarUtils {
      * @param userElemeStarCookie 想要领取最大红包的cookie
      * @return
      */
-    public String getAllHb(ElemeStarHb elemeStarHb, List<ElemeStarCookie> elemeStarCookies, ElemeStarCookie userElemeStarCookie) {
+    public Map<String, Object> getAllHb(ElemeStarHb elemeStarHb, List<ElemeStarCookie> elemeStarCookies, ElemeStarCookie userElemeStarCookie) {
         String result = getOneByUtil(elemeStarHb);
+        if (getStatus(result) == OVERDUE) {
+            return myResponse("红包已过期", HB_OVERDUE);
+        }
         int luckyNum = getLuckyNumberFromHtml(result);
         int nowNum = getNowNumberFromHtml(result);
         if (luckyNum - nowNum < 1) {
-            logger.info("红包已被领取{}/{},{}", nowNum, luckyNum, elemeStarHb.getUrl());
+            logger.debug("红包已被领取{}/{},{}", nowNum, luckyNum, elemeStarHb.getUrl());
+            return myResponse("红包已被领取:" + nowNum + "/" + luckyNum + ","
+                    + elemeStarHb.getUrl(), HB_RECEIVED);
         } else if (luckyNum - nowNum > 1) {
             for (int i = 0; luckyNum - nowNum > 1 && i < elemeStarCookies.size(); i++) {
                 nowNum = getNowNumberFromHtml(getOne(elemeStarHb, elemeStarCookies.get(i)));
@@ -107,12 +116,46 @@ public class ElemeStarUtils {
         // 判断是否领取完毕
         if (luckyNum - nowNum == 1) {
             if (userElemeStarCookie == null) {
-                return "红包已领取到最大前一个:" + nowNum + "/" + luckyNum + "," + elemeStarHb.getUrl();
-            } else {
-                return getOne(elemeStarHb, userElemeStarCookie);
+                return myResponse("红包已领取到最大前一个:" + nowNum + "/" + luckyNum + ","
+                        + elemeStarHb.getUrl(), GET_SUCCESS);
+            }
+            // 帮助用户领取最大的红包
+            else {
+                String userResult = getOne(elemeStarHb, userElemeStarCookie);
+                switch (getStatus(userResult)) {
+                    case SUCCESS:
+                        return myResponse("领取成功", GET_SUCCESS);
+                    case RECEIVED:
+                        return myResponse("你已经领取过该红包" + nowNum + "/" + luckyNum + ","
+                                + elemeStarHb.getUrl(), USER_RECEIVED);
+                    default:
+                        logger.error("未知红包状态码:{}", userResult);
+                        return myResponse("红包已领取到最大前一个:" + nowNum + "/" + luckyNum + ","
+                                + elemeStarHb.getUrl(), FAIL_TO_RECEIVE);
+                }
             }
         } else {
-            return "红包领取失败:" + nowNum + "/" + luckyNum + "," + elemeStarHb.getUrl();
+            // 未能成功领取
+            return myResponse("红包领取失败:" + nowNum + "/" + luckyNum + ","
+                    + elemeStarHb.getUrl(), GET_PARTIAL);
+        }
+    }
+
+    /**
+     * 根据返回结果获取领取状态
+     *
+     * @param html 请求返回的html
+     * @return
+     */
+    public int getStatus(String html) {
+        String patternStr = "\"status\":[0-9]{1,5}";
+        Pattern pattern = Pattern.compile(patternStr);
+        Matcher matcher = pattern.matcher(html);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(0).substring(9));
+        } else {
+            logger.error("饿了么星选领取状态获取失败:{}", matcher.group(0));
+            return -1;
         }
     }
 
@@ -149,9 +192,14 @@ public class ElemeStarUtils {
         // 现在创建 matcher 对象
         Matcher matcher = pattern.matcher(html);
         if (matcher.find()) {
-            JSONArray jsonArray = JSON.parseArray(matcher.group(0).substring(15));
-            logger.info(jsonArray.toJSONString());
-            return jsonArray.size();
+            try {
+                JSONArray jsonArray = JSON.parseArray(matcher.group(0).substring(15));
+                logger.debug(jsonArray.toJSONString());
+                return jsonArray.size();
+            } catch (Exception e) {
+                logger.error("饿了么星选红包领取个数获取失败:{},{}", matcher.group(0), e);
+                return -1;
+            }
         } else {
             logger.error("饿了么星选红包领取个数获取失败:{}", matcher.group(0));
             return -1;

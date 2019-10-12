@@ -1,21 +1,21 @@
 package cn.lzumi.elehb.controller;
 
-import cn.lzumi.elehb.bean.ElemeCookie;
 import cn.lzumi.elehb.bean.ElemeStarCookie;
 import cn.lzumi.elehb.bean.ElemeStarHb;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
 import cn.lzumi.elehb.utils.ElemeStarUtils;
-import com.alibaba.fastjson.JSONObject;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import static cn.lzumi.elehb.utils.ResponseUtils.*;
+
 
 /**
  * @author izumi
@@ -55,7 +55,7 @@ public class ElemeStarController {
         //初始化cookies
         elemeStarCookies = elemeStarUtils.elemeStarCookiesInit(elemeStarCookies);
         String result = elemeStarUtils.getOne(elemeStarHb, elemeStarCookies.get(0));
-        return elemeStarUtils.getNowNumberFromHtml(result);
+        return result;
     }
 
     /**
@@ -68,7 +68,7 @@ public class ElemeStarController {
      */
     @GetMapping("/get_all")
     @ApiOperation(value = "领取红包", tags = {"饿了么星选"})
-    public Object getAllHb(String caseid, String sign, String name,
+    public Map<String, Object> getAllHb(String caseid, String sign, String name,
                            @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
         ElemeStarHb elemeStarHb = elemeStarUtils.elemeStarHbInit(caseid, sign, requestBody);
         //初始化cookies
@@ -79,12 +79,17 @@ public class ElemeStarController {
 
     @GetMapping("/get_number")
     @ApiOperation(value = "查询红包当前领取数量", tags = {"饿了么星选"})
-    public String getHbNumber(String caseid, String sign,
-                              @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
+    public Map<String, Object> getHbNumber(String caseid, String sign,
+                                           @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
         ElemeStarHb elemeStarHb = elemeStarUtils.elemeStarHbInit(caseid, sign, requestBody);
         String result = elemeStarUtils.getOneByUtil(elemeStarHb);
+        if (elemeStarUtils.getStatus(result) == OVERDUE) {
+            return myResponse("红包已过期", 204);
+        }
         int luckyNum = elemeStarUtils.getLuckyNumberFromHtml(result);
         int nowNum = elemeStarUtils.getNowNumberFromHtml(result);
-        return "红包领取状态:" + nowNum + "/" + luckyNum;
+        return myResponse("红包领取状态:" + nowNum + "/" + luckyNum, 200);
     }
+
+
 }
