@@ -42,6 +42,7 @@ public class ElemeStarUtils {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     public final int COOKIE_NUM = 10;
     private RestTemplate restTemplate = new RestTemplate();
+    private RegexUtils regexUtils = new RegexUtils();
 
     /**
      * 初始化requestHeaders
@@ -124,7 +125,7 @@ public class ElemeStarUtils {
                 String userResult = getOne(elemeStarHb, userElemeStarCookie);
                 switch (getStatus(userResult)) {
                     case SUCCESS:
-                        return myResponse("领取成功", GET_SUCCESS);
+                        return myResponse("领取成功,红包金额:" + getAmountFromHtml(userResult) + "元", GET_SUCCESS);
                     case RECEIVED:
                         return myResponse("你已经领取过该红包" + nowNum + "/" + luckyNum + ","
                                 + elemeStarHb.getUrl(), USER_RECEIVED);
@@ -148,9 +149,7 @@ public class ElemeStarUtils {
      * @return
      */
     public int getStatus(String html) {
-        String patternStr = "\"status\":[0-9]{1,5}";
-        Pattern pattern = Pattern.compile(patternStr);
-        Matcher matcher = pattern.matcher(html);
+        Matcher matcher = regexUtils.getMatcher("\"status\":[0-9]{1,5}", html);
         if (matcher.find()) {
             return Integer.parseInt(matcher.group(0).substring(9));
         } else {
@@ -167,13 +166,29 @@ public class ElemeStarUtils {
      */
     public int getLuckyNumberFromHtml(String html) {
         // 在字符串中匹配：【饿了么星选】第 (红包最大个数)
-        String patternStr = "【饿了么星选】第[0-9]{1,2}";
-        Pattern pattern = Pattern.compile(patternStr);
-        Matcher matcher = pattern.matcher(html);
+        Matcher matcher = regexUtils.getMatcher("【饿了么星选】第[0-9]{1,2}", html);
         if (matcher.find()) {
             return Integer.parseInt(matcher.group(0).substring(8));
         } else {
             logger.error("饿了么星选红包最大个数获取失败:{}", matcher.group(0));
+            return -1;
+        }
+    }
+
+    /**
+     * 根据返回结果获取领取金额
+     *
+     * @param html 请求返回的html
+     * @return Amount 红包金额
+     */
+    public int getAmountFromHtml(String html) {
+        Matcher matcher = regexUtils.getMatcher("\"amount\":[0-9]{1,2},\"phone\"", html);
+        if (matcher.find()) {
+            // matcher.group(0) == "amount":11,"phone"
+            String amount = matcher.group(0).split(",")[0].substring(9);
+            return Integer.parseInt(amount);
+        } else {
+            logger.error("饿了么星选红包金额获取失败:{}", html);
             return -1;
         }
     }
@@ -186,11 +201,7 @@ public class ElemeStarUtils {
      */
     public int getNowNumberFromHtml(String html) {
         // 在字符串中匹配：friends_info (已领取人员信息)
-        String patternStr = "\"friends_info\":.*?]";
-        // 创建 Pattern 对象
-        Pattern pattern = Pattern.compile(patternStr);
-        // 现在创建 matcher 对象
-        Matcher matcher = pattern.matcher(html);
+        Matcher matcher = regexUtils.getMatcher("\"friends_info\":.*?]", html);
         if (matcher.find()) {
             try {
                 JSONArray jsonArray = JSON.parseArray(matcher.group(0).substring(15));

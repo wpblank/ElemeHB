@@ -34,7 +34,7 @@ public class ElemeStarController {
     @Value("${cn.lzumi.elehb}")
     public String eleme;
 
-    private List<ElemeStarCookie> elemeStarCookies = new ArrayList<>();
+    public List<ElemeStarCookie> elemeStarCookies = new ArrayList<>();
 
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么星选红包领取", tags = {"饿了么星选"})
