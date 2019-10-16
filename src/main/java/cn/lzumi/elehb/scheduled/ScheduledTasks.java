@@ -1,21 +1,13 @@
 package cn.lzumi.elehb.scheduled;
 
-import cn.lzumi.elehb.bean.ElemeCookie;
-import cn.lzumi.elehb.bean.ElemeHb;
-import cn.lzumi.elehb.bean.ElemeStarCookie;
 import cn.lzumi.elehb.controller.ElemeController;
 import cn.lzumi.elehb.controller.ElemeStarController;
-import cn.lzumi.elehb.mapper.ElemeMapper;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
 import cn.lzumi.elehb.utils.ElemeStarUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.converter.json.GsonBuilderUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * 定时监控数据库中红包是否到达可以直接领取的状态
@@ -30,8 +22,6 @@ public class ScheduledTasks {
     ElemeController elemeController;
     @Autowired
     ElemeStarController elemeStarController;
-    @Autowired
-    ElemeStarUtils elemeStarUtils;
     @Autowired
     ElemeStarMapper elemeStarMapper;
     private int once = 1;

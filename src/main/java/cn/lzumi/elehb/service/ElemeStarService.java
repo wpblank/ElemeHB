@@ -1,0 +1,137 @@
+package cn.lzumi.elehb.service;
+
+import cn.lzumi.elehb.domain.ElemeStarCookie;
+import cn.lzumi.elehb.domain.ElemeStarHb;
+import cn.lzumi.elehb.mapper.ElemeStarMapper;
+import cn.lzumi.elehb.utils.ElemeStarUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static cn.lzumi.elehb.utils.ResponseUtils.*;
+
+/**
+ * @author izumi
+ */
+@Service
+public class ElemeStarService {
+    @Autowired
+    ElemeStarMapper elemeStarMapper;
+
+    @Value("${cn.lzumi.utilElemeStarCookie}")
+    public String utilElemeStarCookie;
+
+    public final int COOKIE_NUM = 10;
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private ElemeStarUtils esUtils = new ElemeStarUtils();
+
+    public List<ElemeStarCookie> elemeStarCookies = new ArrayList<>();
+
+    /**
+     * 领取饿了么星选红包
+     *
+     * @param caseid
+     * @param sign
+     * @param name
+     * @param requestBody
+     * @return
+     */
+    public Map<String, Object> getAllHb(String caseid, String sign, String name, MultiValueMap<String, String> requestBody) {
+        ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(caseid, sign, requestBody);
+        //初始化cookies
+        elemeStarCookiesInit();
+        ElemeStarCookie userElemeStarCookie = elemeStarMapper.getUserElemeStarCookie(name);
+        String result = getOneByUtil(elemeStarHb);
+        if (esUtils.getStatus(result) == OVERDUE) {
+            return myResponse("红包已过期", HB_OVERDUE);
+        }
+        int luckyNum = esUtils.getLuckyNumberFromHtml(result);
+        int nowNum = esUtils.getNowNumberFromHtml(result);
+        if (luckyNum - nowNum < 1) {
+            logger.debug("红包已被领取{}/{},{}", nowNum, luckyNum, elemeStarHb.getUrl());
+            return myResponse("红包已被领取:" + nowNum + "/" + luckyNum + ","
+                    + elemeStarHb.getUrl(), HB_RECEIVED, esUtils.getFriendsInfoFromHtml(result));
+        } else if (luckyNum - nowNum > 1) {
+            for (int i = 0; luckyNum - nowNum > 1 && i < elemeStarCookies.size(); i++) {
+                result = esUtils.getOne(elemeStarHb, elemeStarCookies.get(i));
+                nowNum = esUtils.getNowNumberFromHtml(result);
+            }
+        }
+        // 判断是否领取完毕
+        if (luckyNum - nowNum == 1) {
+            if (userElemeStarCookie == null) {
+                return myResponse("红包已领取到最大前一个:" + nowNum + "/" + luckyNum + ","
+                        + elemeStarHb.getUrl(), GET_SUCCESS, esUtils.getFriendsInfoFromHtml(result));
+            }
+            // 帮助用户领取最大的红包
+            else {
+                String userResult = esUtils.getOne(elemeStarHb, userElemeStarCookie);
+                switch (esUtils.getStatus(userResult)) {
+                    case SUCCESS:
+                        return myResponse("领取成功,红包金额:" + esUtils.getAmountFromHtml(userResult) + "元",
+                                GET_SUCCESS, esUtils.getFriendsInfoFromHtml(userResult));
+                    case RECEIVED:
+                        return myResponse("你已经领取过该红包" + nowNum + "/" + luckyNum + "," + elemeStarHb.getUrl(),
+                                USER_RECEIVED, esUtils.getFriendsInfoFromHtml(userResult));
+                    default:
+                        logger.error("未知红包状态码:{}", userResult);
+                        return myResponse("红包已领取到最大前一个:" + nowNum + "/" + luckyNum + ","
+                                + elemeStarHb.getUrl(), FAIL_TO_RECEIVE, esUtils.getFriendsInfoFromHtml(userResult));
+                }
+            }
+        } else {
+            // 未能成功领取
+            return myResponse("红包领取失败:" + nowNum + "/" + luckyNum + ","
+                    + elemeStarHb.getUrl(), GET_PARTIAL, esUtils.getFriendsInfoFromHtml(result));
+        }
+    }
+
+    public Map<String, Object> getHbNumber(String caseid, String sign, MultiValueMap<String, String> requestBody) {
+        ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(caseid, sign, requestBody);
+        String result = getOneByUtil(elemeStarHb);
+        if (esUtils.getStatus(result) == OVERDUE) {
+            return myResponse("红包已过期", 204);
+        }
+        int luckyNum = esUtils.getLuckyNumberFromHtml(result);
+        int nowNum = esUtils.getNowNumberFromHtml(result);
+        return myResponse("红包领取状态:" + nowNum + "/" + luckyNum, 200,
+                esUtils.getFriendsInfoFromHtml(result));
+    }
+
+
+    /**
+     * 初始化饿了么星选cookies
+     * 如果cookies不存在或者数量过少，则向数据库请求获得新的cookies
+     * 同时将旧cookie的使用次数更新至数据库
+     */
+    private void elemeStarCookiesInit() {
+        if (elemeStarCookies.size() == 0) {
+            elemeStarCookies = elemeStarMapper.getElemeStarCookies(COOKIE_NUM);
+            logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
+        } else if (elemeStarCookies.size() < 5) {
+            logger.info("更新星选信息条数:{}", elemeStarMapper.updateElemeStarCookieUseInfo(elemeStarCookies));
+            elemeStarCookies = elemeStarMapper.getElemeStarCookies(COOKIE_NUM);
+            logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
+        }
+    }
+
+    /**
+     * 通过工具人小号，查询红包信息
+     *
+     * @param elemeStarHb
+     * @return
+     */
+    public String getOneByUtil(ElemeStarHb elemeStarHb) {
+        ElemeStarCookie elemeStarCookie = new ElemeStarCookie();
+        elemeStarCookie.setCookie(utilElemeStarCookie);
+        return esUtils.getOne(elemeStarHb, elemeStarCookie);
+    }
+}

@@ -1,6 +1,6 @@
 package cn.lzumi.elehb.utils;
 
-import cn.lzumi.elehb.bean.ElemeCookie;
+import cn.lzumi.elehb.domain.ElemeCookie;
 import cn.lzumi.elehb.mapper.ElemeMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;

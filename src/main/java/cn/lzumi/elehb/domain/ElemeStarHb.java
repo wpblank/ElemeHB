@@ -1,4 +1,4 @@
-package cn.lzumi.elehb.bean;
+package cn.lzumi.elehb.domain;
 
 import lombok.Data;
 

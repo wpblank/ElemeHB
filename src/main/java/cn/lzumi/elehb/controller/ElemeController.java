@@ -1,8 +1,8 @@
 package cn.lzumi.elehb.controller;
 
-import cn.lzumi.elehb.bean.ElemeHb;
+import cn.lzumi.elehb.domain.ElemeHb;
 import cn.lzumi.elehb.mapper.ElemeMapper;
-import cn.lzumi.elehb.bean.ElemeCookie;
+import cn.lzumi.elehb.domain.ElemeCookie;
 import cn.lzumi.elehb.utils.ElemeUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;

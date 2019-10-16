@@ -1,7 +1,7 @@
 package cn.lzumi.elehb.mapper;
 
-import cn.lzumi.elehb.bean.ElemeCookie;
-import cn.lzumi.elehb.bean.ElemeHb;
+import cn.lzumi.elehb.domain.ElemeCookie;
+import cn.lzumi.elehb.domain.ElemeHb;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;

@@ -50,4 +50,10 @@ public class ResponseUtils {
         responseMap.put("message", body);
         return responseMap;
     }
+
+    public static Map<String, Object> myResponse(Object body, int status, Object friendInfo) {
+        Map<String, Object> responseMap = myResponse(body, status);
+        responseMap.put("friend_info", friendInfo);
+        return responseMap;
+    }
 }

@@ -1,9 +1,8 @@
 package cn.lzumi.elehb.scheduled;
 
-import cn.lzumi.elehb.bean.ElemeStarCookie;
-import cn.lzumi.elehb.controller.ElemeStarController;
+import cn.lzumi.elehb.domain.ElemeStarCookie;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
-import cn.lzumi.elehb.utils.ElemeStarUtils;
+import cn.lzumi.elehb.service.ElemeStarService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,7 @@ import java.util.List;
 @Component
 public class ElemeStarScheduled {
     @Autowired
-    ElemeStarController elemeStarController;
+    ElemeStarService elemeStarService;
     @Autowired
     ElemeStarMapper elemeStarMapper;
 
@@ -27,9 +26,9 @@ public class ElemeStarScheduled {
 
     @Scheduled(cron = "01 00 00 * * ?")
     public void clearElemeStarCookieTodayUse() {
-        List<ElemeStarCookie> elemeStarCookies = elemeStarController.elemeStarCookies;
+        List<ElemeStarCookie> elemeStarCookies = elemeStarService.elemeStarCookies;
         logger.info("更新星选信息条数:{}", elemeStarMapper.updateElemeStarCookieUseInfo(elemeStarCookies));
-        elemeStarController.elemeStarCookies.clear();
+        elemeStarService.elemeStarCookies.clear();
         logger.info("重置星选cookie今日使用次数,重置条数:{}", elemeStarMapper.clearElemeStarCookieTodayUse());
     }
 }

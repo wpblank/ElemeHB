@@ -1,6 +1,6 @@
 package cn.lzumi.elehb.mapper;
 
-import cn.lzumi.elehb.bean.ElemeStarCookie;
+import cn.lzumi.elehb.domain.ElemeStarCookie;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
