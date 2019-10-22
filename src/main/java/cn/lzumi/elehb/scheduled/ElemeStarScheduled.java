@@ -2,7 +2,7 @@ package cn.lzumi.elehb.scheduled;
 
 import cn.lzumi.elehb.domain.ElemeStarCookie;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
-import cn.lzumi.elehb.service.ElemeStarService;
+import cn.lzumi.elehb.service.impl.ElemeStarServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import java.util.List;
 @Component
 public class ElemeStarScheduled {
     @Autowired
-    ElemeStarService elemeStarService;
+    ElemeStarServiceImpl elemeStarService;
     @Autowired
     ElemeStarMapper elemeStarMapper;
 

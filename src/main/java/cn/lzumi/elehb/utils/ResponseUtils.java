@@ -20,7 +20,7 @@ public class ResponseUtils {
      */
     public static final int RECEIVED = 5;
     /**
-     * 成功领取
+     * 成功领取(既可表示主号领取成功，又可表示领取到最大前一个)
      */
     public static final int GET_SUCCESS = 200;
     /**

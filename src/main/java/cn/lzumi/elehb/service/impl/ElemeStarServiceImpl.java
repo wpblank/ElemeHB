@@ -1,8 +1,9 @@
-package cn.lzumi.elehb.service;
+package cn.lzumi.elehb.service.impl;
 
 import cn.lzumi.elehb.domain.ElemeStarCookie;
 import cn.lzumi.elehb.domain.ElemeStarHb;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
+import cn.lzumi.elehb.service.HbService;
 import cn.lzumi.elehb.utils.ElemeStarUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,14 +22,14 @@ import static cn.lzumi.elehb.utils.ResponseUtils.*;
  * @author izumi
  */
 @Service
-public class ElemeStarService {
+public class ElemeStarServiceImpl implements HbService {
     @Autowired
     ElemeStarMapper elemeStarMapper;
 
     @Value("${cn.lzumi.utilElemeStarCookie}")
     public String utilElemeStarCookie;
 
-    public final int COOKIE_NUM = 10;
+    private final int COOKIE_NUM = 10;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private ElemeStarUtils esUtils = new ElemeStarUtils();
@@ -40,10 +41,11 @@ public class ElemeStarService {
      *
      * @param caseid
      * @param sign
-     * @param name
-     * @param requestBody
+     * @param name        需要领取红包的用户名
+     * @param requestBody 包含红包的 url
      * @return
      */
+    @Override
     public Map<String, Object> getAllHb(String caseid, String sign, String name, MultiValueMap<String, String> requestBody) {
         ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(caseid, sign, requestBody);
         //初始化cookies
@@ -94,16 +96,29 @@ public class ElemeStarService {
         }
     }
 
+    @Override
+    public Map<String, Object> getAllHb(String sn, String name, MultiValueMap<String, String> requestBody) {
+        return null;
+    }
+
+    @Override
     public Map<String, Object> getHbNumber(String caseid, String sign, MultiValueMap<String, String> requestBody) {
         ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(caseid, sign, requestBody);
         String result = getOneByUtil(elemeStarHb);
         if (esUtils.getStatus(result) == OVERDUE) {
-            return myResponse("红包已过期", 204);
+            return myResponse("红包已过期", HB_OVERDUE);
         }
         int luckyNum = esUtils.getLuckyNumberFromHtml(result);
         int nowNum = esUtils.getNowNumberFromHtml(result);
-        return myResponse("红包领取状态:" + nowNum + "/" + luckyNum, 200,
-                esUtils.getFriendsInfoFromHtml(result));
+        int code;
+        if (luckyNum - nowNum == 1) {
+            code = GET_SUCCESS;
+        } else if (luckyNum > nowNum) {
+            code = GET_PARTIAL;
+        } else {
+            code = HB_RECEIVED;
+        }
+        return myResponse("红包领取状态:" + nowNum + "/" + luckyNum, code, esUtils.getFriendsInfoFromHtml(result));
     }
 
 

@@ -1,6 +1,6 @@
 package cn.lzumi.elehb.controller;
 
-import cn.lzumi.elehb.service.ElemeStarService;
+import cn.lzumi.elehb.service.impl.ElemeStarServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +18,7 @@ import java.util.Map;
 @RequestMapping(value = "/eleme_star")
 public class ElemeStarController {
     @Autowired
-    ElemeStarService elemeStarService;
+    ElemeStarServiceImpl elemeStarService;
 
     @Value("${cn.lzumi.elehb}")
     public String eleme;
@@ -61,7 +61,7 @@ public class ElemeStarController {
     }
 
     @GetMapping("/get_number")
-    @ApiOperation(value = "查询红包当前领取数量", tags = {"饿了么星选"})
+    @ApiOperation(value = "查询红包当前领取状态", tags = {"饿了么星选"})
     public Map<String, Object> getHbNumber(String caseid, String sign,
                                            @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
         return elemeStarService.getHbNumber(caseid, sign, requestBody);
