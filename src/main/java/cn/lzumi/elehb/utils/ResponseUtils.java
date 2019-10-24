@@ -45,7 +45,7 @@ public class ResponseUtils {
     public static final int GET_PARTIAL = 206;
 
     public static Map<String, Object> myResponse(Object body, int status) {
-        Map<String, Object> responseMap = new HashMap<>(4);
+        Map<String, Object> responseMap = new HashMap<>(8);
         responseMap.put("status", status);
         responseMap.put("message", body);
         return responseMap;

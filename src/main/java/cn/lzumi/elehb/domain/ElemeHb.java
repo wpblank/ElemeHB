@@ -6,9 +6,7 @@ import lombok.Data;
  * @author izumi
  */
 @Data
-public class ElemeHb {
-    private int id;
-    private String url;
+public class ElemeHb extends Hb{
     private String sn;
     private int isGet;
     private int maxNum;

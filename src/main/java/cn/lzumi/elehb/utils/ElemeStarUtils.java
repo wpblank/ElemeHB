@@ -11,6 +11,7 @@ import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 
 import static cn.lzumi.elehb.utils.ResponseUtils.*;
@@ -179,21 +180,20 @@ public class ElemeStarUtils {
     /**
      * 组装星选红包
      *
-     * @param caseid
-     * @param sign
      * @param requestBody
      * @return ElemeStarHb
      */
-    public ElemeStarHb elemeStarHbInit(String caseid, String sign, MultiValueMap<String, String> requestBody) {
+    public ElemeStarHb elemeStarHbInit(Map<String, String> requestBody) {
         if (requestBody != null && requestBody.containsKey("url")) {
-            String url = requestBody.get("url").get(0);
+            String url = requestBody.get("url");
             //注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
-            caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);
-            sign = url.substring(url.indexOf("sign=") + 5, url.indexOf("sign=") + 37);
+            String caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);
+            String sign = url.substring(url.indexOf("sign=") + 5, url.indexOf("sign=") + 37);
             return new ElemeStarHb(url, caseid, sign);
-        } else if (caseid != null && sign != null) {
-            String url = "https://star.ele.me/hongbao/wpshare?caseid=" + caseid + "&sign=" + sign;
-            return new ElemeStarHb(url, caseid, sign);
+        } else if (requestBody.containsKey("caseid") && requestBody.containsKey("sign")) {
+            String url = "https://star.ele.me/hongbao/wpshare?caseid=" +
+                    requestBody.get("caseid") + "&sign=" + requestBody.get("sign");
+            return new ElemeStarHb(url, requestBody.get("caseid"), requestBody.get("sign"));
         } else {
             return new ElemeStarHb(null, null, null);
         }

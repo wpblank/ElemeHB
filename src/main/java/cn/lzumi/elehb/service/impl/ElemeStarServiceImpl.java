@@ -2,6 +2,7 @@ package cn.lzumi.elehb.service.impl;
 
 import cn.lzumi.elehb.domain.ElemeStarCookie;
 import cn.lzumi.elehb.domain.ElemeStarHb;
+import cn.lzumi.elehb.domain.Hb;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
 import cn.lzumi.elehb.service.HbService;
 import cn.lzumi.elehb.utils.ElemeStarUtils;
@@ -39,17 +40,15 @@ public class ElemeStarServiceImpl implements HbService {
     /**
      * 领取饿了么星选红包
      *
-     * @param caseid
-     * @param sign
      * @param name        需要领取红包的用户名
      * @param requestBody 包含红包的 url
      * @return
      */
     @Override
-    public Map<String, Object> getAllHb(String caseid, String sign, String name, MultiValueMap<String, String> requestBody) {
-        ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(caseid, sign, requestBody);
+    public Map<String, Object> getAllHb(String name, Map<String, String> requestBody) {
+        ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(requestBody);
         //初始化cookies
-        elemeStarCookiesInit();
+        cookiesInit();
         ElemeStarCookie userElemeStarCookie = elemeStarMapper.getUserElemeStarCookie(name);
         String result = getOneByUtil(elemeStarHb);
         if (esUtils.getStatus(result) == OVERDUE) {
@@ -97,13 +96,8 @@ public class ElemeStarServiceImpl implements HbService {
     }
 
     @Override
-    public Map<String, Object> getAllHb(String sn, String name, MultiValueMap<String, String> requestBody) {
-        return null;
-    }
-
-    @Override
-    public Map<String, Object> getHbNumber(String caseid, String sign, MultiValueMap<String, String> requestBody) {
-        ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(caseid, sign, requestBody);
+    public Map<String, Object> getHbNumber(Map<String, String> requestBody) {
+        ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(requestBody);
         String result = getOneByUtil(elemeStarHb);
         if (esUtils.getStatus(result) == OVERDUE) {
             return myResponse("红包已过期", HB_OVERDUE);
@@ -127,7 +121,8 @@ public class ElemeStarServiceImpl implements HbService {
      * 如果cookies不存在或者数量过少，则向数据库请求获得新的cookies
      * 同时将旧cookie的使用次数更新至数据库
      */
-    private void elemeStarCookiesInit() {
+    @Override
+    public void cookiesInit() {
         if (elemeStarCookies.size() == 0) {
             elemeStarCookies = elemeStarMapper.getElemeStarCookies(COOKIE_NUM);
             logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
@@ -140,11 +135,10 @@ public class ElemeStarServiceImpl implements HbService {
 
     /**
      * 通过工具人小号，查询红包信息
-     *
-     * @param elemeStarHb
-     * @return
      */
-    public String getOneByUtil(ElemeStarHb elemeStarHb) {
+    @Override
+    public String getOneByUtil(Hb hb) {
+        ElemeStarHb elemeStarHb = (ElemeStarHb) hb;
         ElemeStarCookie elemeStarCookie = new ElemeStarCookie();
         elemeStarCookie.setCookie(utilElemeStarCookie);
         return esUtils.getOne(elemeStarHb, elemeStarCookie);

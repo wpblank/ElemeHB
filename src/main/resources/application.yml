@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 1096
 spring:
   profiles:
     include: my-config

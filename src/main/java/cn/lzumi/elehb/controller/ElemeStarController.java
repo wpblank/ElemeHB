@@ -48,22 +48,19 @@ public class ElemeStarController {
     /**
      * 领取红包到最大一个以前，如果name存在，则帮name领取最大红包
      *
-     * @param caseid 红包caseid
-     * @param sign   红包sign
      * @param name   用户名
      * @return
      */
-    @GetMapping("/get_all")
+    @PostMapping("/get_all")
     @ApiOperation(value = "领取红包", tags = {"饿了么星选"})
-    public Map<String, Object> getAllHb(String caseid, String sign, String name,
-                                        @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
-        return elemeStarService.getAllHb(caseid, sign, name, requestBody);
+    public Map<String, Object> getAllHb(String name,
+                                        @RequestBody(required = false) Map<String, String> requestBody) {
+        return elemeStarService.getAllHb(name, requestBody);
     }
 
-    @GetMapping("/get_number")
+    @PostMapping("/get_number")
     @ApiOperation(value = "查询红包当前领取状态", tags = {"饿了么星选"})
-    public Map<String, Object> getHbNumber(String caseid, String sign,
-                                           @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
-        return elemeStarService.getHbNumber(caseid, sign, requestBody);
+    public Map<String, Object> getHbNumber(@RequestBody(required = false) Map<String, String> requestBody) {
+        return elemeStarService.getHbNumber(requestBody);
     }
 }

@@ -6,9 +6,7 @@ import lombok.Data;
  * @author izumi
  */
 @Data
-public class ElemeStarHb {
-    private int id;
-    private String url;
+public class ElemeStarHb extends Hb {
     private String caseid;
     private String sign;
 
