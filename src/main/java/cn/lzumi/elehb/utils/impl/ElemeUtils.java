@@ -1,4 +1,4 @@
-package cn.lzumi.elehb.utils;
+package cn.lzumi.elehb.utils.impl;
 
 import cn.lzumi.elehb.domain.ElemeCookie;
 import cn.lzumi.elehb.mapper.ElemeMapper;

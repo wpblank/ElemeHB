@@ -3,7 +3,6 @@ package cn.lzumi.elehb.scheduled;
 import cn.lzumi.elehb.controller.ElemeController;
 import cn.lzumi.elehb.controller.ElemeStarController;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
-import cn.lzumi.elehb.utils.ElemeStarUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

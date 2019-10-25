@@ -5,13 +5,12 @@ import cn.lzumi.elehb.domain.ElemeStarHb;
 import cn.lzumi.elehb.domain.Hb;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
 import cn.lzumi.elehb.service.HbService;
-import cn.lzumi.elehb.utils.ElemeStarUtils;
+import cn.lzumi.elehb.utils.impl.ElemeStarUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,7 @@ public class ElemeStarServiceImpl implements HbService {
      */
     @Override
     public Map<String, Object> getAllHb(String name, Map<String, String> requestBody) {
-        ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(requestBody);
+        ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
         //初始化cookies
         cookiesInit();
         ElemeStarCookie userElemeStarCookie = elemeStarMapper.getUserElemeStarCookie(name);
@@ -77,7 +76,7 @@ public class ElemeStarServiceImpl implements HbService {
                 String userResult = esUtils.getOne(elemeStarHb, userElemeStarCookie);
                 switch (esUtils.getStatus(userResult)) {
                     case SUCCESS:
-                        return myResponse("领取成功,红包金额:" + esUtils.getAmountFromHtml(userResult) + "元",
+                        return myResponse("领取成功,红包金额:" + esUtils.getAmountFromResult(userResult) + "元",
                                 GET_SUCCESS, esUtils.getFriendsInfoFromHtml(userResult));
                     case RECEIVED:
                         return myResponse("你已经领取过该红包" + nowNum + "/" + luckyNum + "," + elemeStarHb.getUrl(),
@@ -97,7 +96,7 @@ public class ElemeStarServiceImpl implements HbService {
 
     @Override
     public Map<String, Object> getHbNumber(Map<String, String> requestBody) {
-        ElemeStarHb elemeStarHb = esUtils.elemeStarHbInit(requestBody);
+        ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
         String result = getOneByUtil(elemeStarHb);
         if (esUtils.getStatus(result) == OVERDUE) {
             return myResponse("红包已过期", HB_OVERDUE);
@@ -143,4 +142,11 @@ public class ElemeStarServiceImpl implements HbService {
         elemeStarCookie.setCookie(utilElemeStarCookie);
         return esUtils.getOne(elemeStarHb, elemeStarCookie);
     }
+
+    public String getOneByUtil(Map<String, String> requestBody){
+        ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
+        return esUtils.resultInit(getOneByUtil(elemeStarHb)).toString();
+        // return getOneByUtil(elemeStarHb);
+    }
+
 }

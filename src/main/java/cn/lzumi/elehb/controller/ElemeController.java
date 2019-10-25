@@ -3,7 +3,7 @@ package cn.lzumi.elehb.controller;
 import cn.lzumi.elehb.domain.ElemeHb;
 import cn.lzumi.elehb.mapper.ElemeMapper;
 import cn.lzumi.elehb.domain.ElemeCookie;
-import cn.lzumi.elehb.utils.ElemeUtils;
+import cn.lzumi.elehb.utils.impl.ElemeUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;

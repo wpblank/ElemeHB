@@ -1,7 +1,11 @@
-package cn.lzumi.elehb.utils;
+package cn.lzumi.elehb.utils.impl;
 
+import cn.lzumi.elehb.domain.Cookie;
 import cn.lzumi.elehb.domain.ElemeStarCookie;
 import cn.lzumi.elehb.domain.ElemeStarHb;
+import cn.lzumi.elehb.domain.Hb;
+import cn.lzumi.elehb.utils.HbUtils;
+import cn.lzumi.elehb.utils.RegexUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -20,7 +24,7 @@ import static cn.lzumi.elehb.utils.ResponseUtils.*;
  * @author izumi
  * @date 2019-08-29 15:09:50
  */
-public class ElemeStarUtils {
+public class ElemeStarUtils implements HbUtils {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private RestTemplate restTemplate = new RestTemplate();
@@ -33,7 +37,10 @@ public class ElemeStarUtils {
      * @param cookie
      * @param app            0:微信 1:钉钉
      */
-    public void requestInit(HttpHeaders requestHeaders, String cookie, int app) {
+    @Override
+    public void requestInit(HttpHeaders requestHeaders,
+                            MultiValueMap<String, String> requestBody, Cookie cookie, int app) {
+        ElemeStarCookie elemeStarCookie = (ElemeStarCookie) cookie;
         requestHeaders.add("Accept", "*/*");
         switch (app) {
             case 0:
@@ -46,25 +53,24 @@ public class ElemeStarUtils {
                 break;
         }
         requestHeaders.add("Connection", "Keep-Alive");
-        requestHeaders.add("Cookie", cookie);
+        requestHeaders.add("Cookie", elemeStarCookie.getCookie());
     }
 
     /**
      * 领取一次饿了么星选红包
      *
-     * @param elemeStarHb     饿了么星选红包
-     * @param elemeStarCookie 饿了么星选cookie
      * @return html
      */
-    public String getOne(ElemeStarHb elemeStarHb, ElemeStarCookie elemeStarCookie) {
-        String cookie = elemeStarCookie.getCookie();
+    @Override
+    public String getOne(Hb hb, Cookie cookie) {
+        ElemeStarHb elemeStarHb = (ElemeStarHb) hb;
+        ElemeStarCookie elemeStarCookie = (ElemeStarCookie) cookie;
         HttpHeaders requestHeaders = new HttpHeaders();
         //初始化requestHeaders
-        requestInit(requestHeaders, cookie, elemeStarCookie.getApp());
+        requestInit(requestHeaders, null, elemeStarCookie, elemeStarCookie.getApp());
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (elemeStarHb.getUrl(), HttpMethod.GET, requestEntity, String.class);
-        logger.debug(responseEntity.toString());
         // 领取成功, cookie使用次数+1
         if (SUCCESS == getStatus(responseEntity.getBody())) {
             elemeStarCookie.add();
@@ -86,6 +92,37 @@ public class ElemeStarUtils {
             logger.error("饿了么星选领取状态获取失败:{}", matcher.group(0));
             return -1;
         }
+    }
+
+    /**
+     * 根据JSON获取领取状态
+     *
+     * @param jsonObject 领取结果的字符串
+     * @return 领取状态码
+     */
+    @Override
+    public int getStatus(JSONObject jsonObject) {
+        return (int) jsonObject.get("status");
+    }
+
+    @Override
+    public int getNowNumber(JSONObject jsonObject) {
+        return jsonObject.getJSONArray("friends_info").size();
+    }
+
+    /**
+     * 根据JSON获取领取金额
+     *
+     * @param jsonObject 领取结果
+     * @return Amount 红包金额
+     */
+    @Override
+    public int getAmount(JSONObject jsonObject) {
+        if (jsonObject.containsKey("coupons")) {
+            jsonObject = jsonObject.getJSONObject("coupons");
+            return (int) jsonObject.get("amount");
+        }
+        return 0;
     }
 
     /**
@@ -111,7 +148,7 @@ public class ElemeStarUtils {
      * @param html 请求返回的html
      * @return Amount 红包金额
      */
-    public int getAmountFromHtml(String html) {
+    public int getAmountFromResult(String html) {
         Matcher matcher = regexUtils.getMatcher("\"amount\":[0-9]{1,2},\"phone\"", html);
         if (matcher.find()) {
             // matcher.group(0) == "amount":11,"phone"
@@ -121,6 +158,28 @@ public class ElemeStarUtils {
             logger.error("饿了么星选红包金额获取失败:{}", html);
             return -1;
         }
+    }
+
+    @Override
+    public JSONObject resultInit(String result) {
+        Matcher matcher = regexUtils.getMatcher("init\\(\\{\"error_no\".*?}\\);", result);
+        if (matcher.find()) {
+            JSONObject jsonObject;
+            try {
+                result = matcher.group(0).substring(5, matcher.group(0).length() - 2);
+                jsonObject = JSON.parseObject(result);
+                jsonObject = jsonObject.getJSONObject("result");
+            } catch (Exception e) {
+                logger.error("result转json出错{} {}", e.toString(), result);
+                return null;
+            }
+            jsonObject.remove("load");
+            jsonObject.remove("token");
+            jsonObject.remove("share");
+            jsonObject.remove("ext_coupons");
+            return jsonObject;
+        }
+        return null;
     }
 
     /**
@@ -183,8 +242,11 @@ public class ElemeStarUtils {
      * @param requestBody
      * @return ElemeStarHb
      */
-    public ElemeStarHb elemeStarHbInit(Map<String, String> requestBody) {
-        if (requestBody != null && requestBody.containsKey("url")) {
+    @Override
+    public ElemeStarHb hbInit(Map<String, String> requestBody) {
+        if (requestBody == null) {
+            return new ElemeStarHb(null, null, null);
+        } else if (requestBody.containsKey("url")) {
             String url = requestBody.get("url");
             //注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
             String caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);

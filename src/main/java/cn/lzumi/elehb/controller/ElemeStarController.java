@@ -29,26 +29,21 @@ public class ElemeStarController {
         return eleme;
     }
 
-//    /**
-//     * 领取一次红包
-//     *
-//     * @return 当前领取个数
-//     */
-//    @GetMapping("/get_one")
-//    @ApiOperation(value = "领取一次红包", tags = {"饿了么星选"})
-//    public Object getOneHb(String caseid, String sign,
-//                           @RequestBody(required = false) MultiValueMap<String, String> requestBody) {
-//        ElemeStarHb elemeStarHb = elemeStarUtils.elemeStarHbInit(caseid, sign, requestBody);
-//        //初始化cookies
-//        elemeStarCookies = elemeStarService.elemeStarCookiesInit(elemeStarCookies);
-//        String result = elemeStarUtils.getOne(elemeStarHb, elemeStarCookies.get(0));
-//        return result;
-//    }
+    /**
+     * 领取一次红包
+     *
+     * @return 领取结果
+     */
+    @PostMapping("/get_one")
+    @ApiOperation(value = "领取一次红包", tags = {"饿了么星选"})
+    public Object getOneHb(@RequestBody(required = false) Map<String, String> requestBody) {
+        return elemeStarService.getOneByUtil(requestBody);
+    }
 
     /**
      * 领取红包到最大一个以前，如果name存在，则帮name领取最大红包
      *
-     * @param name   用户名
+     * @param name 用户名
      * @return
      */
     @PostMapping("/get_all")
