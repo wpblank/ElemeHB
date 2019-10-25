@@ -4,6 +4,7 @@ import cn.lzumi.elehb.domain.Cookie;
 import cn.lzumi.elehb.domain.ElemeStarCookie;
 import cn.lzumi.elehb.domain.ElemeStarHb;
 import cn.lzumi.elehb.domain.Hb;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
@@ -57,6 +58,13 @@ public interface HbUtils {
      * @return Amount 红包金额
      */
     int getAmount(JSONObject jsonObject);
+
+    /**
+     * 根据返回结果获取当前红包领取的用户信息
+     * @param jsonObject
+     * @return
+     */
+    JSONArray getFriendsInfo(JSONObject jsonObject);
 
     /**
      * 领取结果转JSONObject

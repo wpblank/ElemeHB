@@ -71,27 +71,12 @@ public class ElemeStarUtils implements HbUtils {
         HttpEntity<MultiValueMap> requestEntity = new HttpEntity<>(requestHeaders);
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (elemeStarHb.getUrl(), HttpMethod.GET, requestEntity, String.class);
+        String result = responseEntity.getBody();
         // 领取成功, cookie使用次数+1
-        if (SUCCESS == getStatus(responseEntity.getBody())) {
+        if (SUCCESS == getStatus(resultInit(result))) {
             elemeStarCookie.add();
         }
-        return responseEntity.getBody();
-    }
-
-    /**
-     * 根据返回结果获取领取状态
-     *
-     * @param html 请求返回的html
-     * @return
-     */
-    public int getStatus(String html) {
-        Matcher matcher = regexUtils.getMatcher("\"status\":[0-9]{1,5}", html);
-        if (matcher.find()) {
-            return Integer.parseInt(matcher.group(0).substring(9));
-        } else {
-            logger.error("饿了么星选领取状态获取失败:{}", matcher.group(0));
-            return -1;
-        }
+        return result;
     }
 
     /**
@@ -125,6 +110,11 @@ public class ElemeStarUtils implements HbUtils {
         return 0;
     }
 
+    @Override
+    public JSONArray getFriendsInfo(JSONObject jsonObject) {
+        return jsonObject.getJSONArray("friends_info");
+    }
+
     /**
      * 根据返回结果获取第几个是最大红包
      *
@@ -142,23 +132,6 @@ public class ElemeStarUtils implements HbUtils {
         }
     }
 
-    /**
-     * 根据返回结果获取领取金额
-     *
-     * @param html 请求返回的html
-     * @return Amount 红包金额
-     */
-    public int getAmountFromResult(String html) {
-        Matcher matcher = regexUtils.getMatcher("\"amount\":[0-9]{1,2},\"phone\"", html);
-        if (matcher.find()) {
-            // matcher.group(0) == "amount":11,"phone"
-            String amount = matcher.group(0).split(",")[0].substring(9);
-            return Integer.parseInt(amount);
-        } else {
-            logger.error("饿了么星选红包金额获取失败:{}", html);
-            return -1;
-        }
-    }
 
     @Override
     public JSONObject resultInit(String result) {
@@ -183,7 +156,66 @@ public class ElemeStarUtils implements HbUtils {
     }
 
     /**
-     * 根据返回结果获取当前已领取红包个数
+     * 组装星选红包
+     *
+     * @param requestBody
+     * @return ElemeStarHb
+     */
+    @Override
+    public ElemeStarHb hbInit(Map<String, String> requestBody) {
+        if (requestBody == null) {
+            return new ElemeStarHb(null, null, null);
+        } else if (requestBody.containsKey("url")) {
+            String url = requestBody.get("url");
+            //注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
+            String caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);
+            String sign = url.substring(url.indexOf("sign=") + 5, url.indexOf("sign=") + 37);
+            return new ElemeStarHb(url, caseid, sign);
+        } else if (requestBody.containsKey("caseid") && requestBody.containsKey("sign")) {
+            String url = "https://star.ele.me/hongbao/wpshare?caseid=" +
+                    requestBody.get("caseid") + "&sign=" + requestBody.get("sign");
+            return new ElemeStarHb(url, requestBody.get("caseid"), requestBody.get("sign"));
+        } else {
+            return new ElemeStarHb(null, null, null);
+        }
+    }
+
+    /**
+     * 根据返回结果获取领取状态 (旧版本、暂时废弃)
+     *
+     * @param html 请求返回的html
+     * @return
+     */
+    public int getStatus(String html) {
+        Matcher matcher = regexUtils.getMatcher("\"status\":[0-9]{1,5}", html);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(0).substring(9));
+        } else {
+            logger.error("饿了么星选领取状态获取失败:{}", matcher.group(0));
+            return -1;
+        }
+    }
+
+    /**
+     * 根据返回结果获取领取金额 (旧版本、暂时废弃)
+     *
+     * @param html 请求返回的html
+     * @return Amount 红包金额
+     */
+    public int getAmountFromResult(String html) {
+        Matcher matcher = regexUtils.getMatcher("\"amount\":[0-9]{1,2},\"phone\"", html);
+        if (matcher.find()) {
+            // matcher.group(0) == "amount":11,"phone"
+            String amount = matcher.group(0).split(",")[0].substring(9);
+            return Integer.parseInt(amount);
+        } else {
+            logger.error("饿了么星选红包金额获取失败:{}", html);
+            return -1;
+        }
+    }
+
+    /**
+     * 根据返回结果获取当前已领取红包个数 (旧版本、暂时废弃)
      *
      * @param html 请求返回的html
      * @return 已领取个数
@@ -207,7 +239,7 @@ public class ElemeStarUtils implements HbUtils {
     }
 
     /**
-     * 根据返回结果获取当前红包领取的用户信息
+     * 根据返回结果获取当前红包领取的用户信息 (旧版本、暂时废弃)
      *
      * @param html 请求返回的html
      * @return 领取人信息
@@ -233,31 +265,6 @@ public class ElemeStarUtils implements HbUtils {
         } else {
             logger.error("星选红包领取的用户信息获取失败:{}", matcher.group(0));
             return null;
-        }
-    }
-
-    /**
-     * 组装星选红包
-     *
-     * @param requestBody
-     * @return ElemeStarHb
-     */
-    @Override
-    public ElemeStarHb hbInit(Map<String, String> requestBody) {
-        if (requestBody == null) {
-            return new ElemeStarHb(null, null, null);
-        } else if (requestBody.containsKey("url")) {
-            String url = requestBody.get("url");
-            //注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
-            String caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);
-            String sign = url.substring(url.indexOf("sign=") + 5, url.indexOf("sign=") + 37);
-            return new ElemeStarHb(url, caseid, sign);
-        } else if (requestBody.containsKey("caseid") && requestBody.containsKey("sign")) {
-            String url = "https://star.ele.me/hongbao/wpshare?caseid=" +
-                    requestBody.get("caseid") + "&sign=" + requestBody.get("sign");
-            return new ElemeStarHb(url, requestBody.get("caseid"), requestBody.get("sign"));
-        } else {
-            return new ElemeStarHb(null, null, null);
         }
     }
 }

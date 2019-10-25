@@ -6,6 +6,7 @@ import cn.lzumi.elehb.domain.Hb;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
 import cn.lzumi.elehb.service.HbService;
 import cn.lzumi.elehb.utils.impl.ElemeStarUtils;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,47 +51,49 @@ public class ElemeStarServiceImpl implements HbService {
         cookiesInit();
         ElemeStarCookie userElemeStarCookie = elemeStarMapper.getUserElemeStarCookie(name);
         String result = getOneByUtil(elemeStarHb);
-        if (esUtils.getStatus(result) == OVERDUE) {
+        JSONObject jsonResult = esUtils.resultInit(result);
+        if (esUtils.getStatus(jsonResult) == OVERDUE) {
             return myResponse("红包已过期", HB_OVERDUE);
         }
         int luckyNum = esUtils.getLuckyNumberFromHtml(result);
-        int nowNum = esUtils.getNowNumberFromHtml(result);
+        int nowNum = esUtils.getNowNumber(jsonResult);
         if (luckyNum - nowNum < 1) {
             logger.debug("红包已被领取{}/{},{}", nowNum, luckyNum, elemeStarHb.getUrl());
             return myResponse("红包已被领取:" + nowNum + "/" + luckyNum + ","
-                    + elemeStarHb.getUrl(), HB_RECEIVED, esUtils.getFriendsInfoFromHtml(result));
+                    + elemeStarHb.getUrl(), HB_RECEIVED, esUtils.getFriendsInfo(jsonResult));
         } else if (luckyNum - nowNum > 1) {
             for (int i = 0; luckyNum - nowNum > 1 && i < elemeStarCookies.size(); i++) {
-                result = esUtils.getOne(elemeStarHb, elemeStarCookies.get(i));
-                nowNum = esUtils.getNowNumberFromHtml(result);
+                jsonResult = esUtils.resultInit(esUtils.getOne(elemeStarHb, elemeStarCookies.get(i)));
+                nowNum = esUtils.getNowNumber(jsonResult);
             }
         }
         // 判断是否领取完毕
         if (luckyNum - nowNum == 1) {
             if (userElemeStarCookie == null) {
                 return myResponse("红包已领取到最大前一个:" + nowNum + "/" + luckyNum + ","
-                        + elemeStarHb.getUrl(), GET_SUCCESS, esUtils.getFriendsInfoFromHtml(result));
+                        + elemeStarHb.getUrl(), GET_SUCCESS, esUtils.getFriendsInfo(jsonResult));
             }
             // 帮助用户领取最大的红包
             else {
                 String userResult = esUtils.getOne(elemeStarHb, userElemeStarCookie);
-                switch (esUtils.getStatus(userResult)) {
+                JSONObject userResultJson = esUtils.resultInit(result);
+                switch (esUtils.getStatus(userResultJson)) {
                     case SUCCESS:
-                        return myResponse("领取成功,红包金额:" + esUtils.getAmountFromResult(userResult) + "元",
-                                GET_SUCCESS, esUtils.getFriendsInfoFromHtml(userResult));
+                        return myResponse("领取成功,红包金额:" + esUtils.getAmount(userResultJson) + "元",
+                                GET_SUCCESS, esUtils.getFriendsInfo(userResultJson));
                     case RECEIVED:
                         return myResponse("你已经领取过该红包" + nowNum + "/" + luckyNum + "," + elemeStarHb.getUrl(),
-                                USER_RECEIVED, esUtils.getFriendsInfoFromHtml(userResult));
+                                USER_RECEIVED, esUtils.getFriendsInfo(userResultJson));
                     default:
-                        logger.error("未知红包状态码:{}", userResult);
+                        logger.error("未知红包状态码:{},{}", esUtils.getStatus(userResultJson), userResult);
                         return myResponse("红包已领取到最大前一个:" + nowNum + "/" + luckyNum + ","
-                                + elemeStarHb.getUrl(), FAIL_TO_RECEIVE, esUtils.getFriendsInfoFromHtml(userResult));
+                                + elemeStarHb.getUrl(), FAIL_TO_RECEIVE, esUtils.getFriendsInfo(userResultJson));
                 }
             }
         } else {
             // 未能成功领取
             return myResponse("红包领取失败:" + nowNum + "/" + luckyNum + ","
-                    + elemeStarHb.getUrl(), GET_PARTIAL, esUtils.getFriendsInfoFromHtml(result));
+                    + elemeStarHb.getUrl(), GET_PARTIAL, esUtils.getFriendsInfo(jsonResult));
         }
     }
 
@@ -98,11 +101,12 @@ public class ElemeStarServiceImpl implements HbService {
     public Map<String, Object> getHbNumber(Map<String, String> requestBody) {
         ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
         String result = getOneByUtil(elemeStarHb);
-        if (esUtils.getStatus(result) == OVERDUE) {
+        JSONObject resultJson = esUtils.resultInit(result);
+        if (esUtils.getStatus(resultJson) == OVERDUE) {
             return myResponse("红包已过期", HB_OVERDUE);
         }
         int luckyNum = esUtils.getLuckyNumberFromHtml(result);
-        int nowNum = esUtils.getNowNumberFromHtml(result);
+        int nowNum = esUtils.getNowNumber(resultJson);
         int code;
         if (luckyNum - nowNum == 1) {
             code = GET_SUCCESS;
@@ -111,7 +115,7 @@ public class ElemeStarServiceImpl implements HbService {
         } else {
             code = HB_RECEIVED;
         }
-        return myResponse("红包领取状态:" + nowNum + "/" + luckyNum, code, esUtils.getFriendsInfoFromHtml(result));
+        return myResponse("红包领取状态:" + nowNum + "/" + luckyNum, code, esUtils.getFriendsInfo(resultJson));
     }
 
 
@@ -143,7 +147,7 @@ public class ElemeStarServiceImpl implements HbService {
         return esUtils.getOne(elemeStarHb, elemeStarCookie);
     }
 
-    public String getOneByUtil(Map<String, String> requestBody){
+    public String getOneByUtil(Map<String, String> requestBody) {
         ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
         return esUtils.resultInit(getOneByUtil(elemeStarHb)).toString();
         // return getOneByUtil(elemeStarHb);
