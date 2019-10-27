@@ -76,7 +76,7 @@ public class ElemeStarServiceImpl implements HbService {
             // 帮助用户领取最大的红包
             else {
                 String userResult = esUtils.getOne(elemeStarHb, userElemeStarCookie);
-                JSONObject userResultJson = esUtils.resultInit(result);
+                JSONObject userResultJson = esUtils.resultInit(userResult);
                 switch (esUtils.getStatus(userResultJson)) {
                     case SUCCESS:
                         return myResponse("领取成功,红包金额:" + esUtils.getAmount(userResultJson) + "元",
