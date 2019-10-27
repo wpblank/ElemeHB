@@ -116,23 +116,11 @@ public class ElemeStarUtils implements HbUtils {
     }
 
     /**
-     * 根据返回结果获取第几个是最大红包
+     * 领取结果转jsonObject
      *
-     * @param html 请求返回的html
-     * @return lucky_number
+     * @param result 领取结果字符串
+     * @return
      */
-    public int getLuckyNumberFromHtml(String html) {
-        // 在字符串中匹配：【饿了么星选】第 (红包最大个数)
-        Matcher matcher = regexUtils.getMatcher("【饿了么星选】第[0-9]{1,2}", html);
-        if (matcher.find()) {
-            return Integer.parseInt(matcher.group(0).substring(8));
-        } else {
-            logger.error("饿了么星选红包最大个数获取失败:{}", matcher.group(0));
-            return -1;
-        }
-    }
-
-
     @Override
     public JSONObject resultInit(String result) {
         Matcher matcher = regexUtils.getMatcher("init\\(\\{\"error_no\".*?}\\);", result);
@@ -143,7 +131,7 @@ public class ElemeStarUtils implements HbUtils {
                 jsonObject = JSON.parseObject(result);
                 jsonObject = jsonObject.getJSONObject("result");
             } catch (Exception e) {
-                logger.error("result转json出错{} {}", e.toString(), result);
+                logger.error("result转json出错 {} {}", e.toString(), result);
                 return null;
             }
             jsonObject.remove("load");
@@ -177,6 +165,23 @@ public class ElemeStarUtils implements HbUtils {
             return new ElemeStarHb(url, requestBody.get("caseid"), requestBody.get("sign"));
         } else {
             return new ElemeStarHb(null, null, null);
+        }
+    }
+
+    /**
+     * 根据返回结果获取第几个是最大红包
+     *
+     * @param html 请求返回的html
+     * @return lucky_number
+     */
+    public int getLuckyNumberFromHtml(String html) {
+        // 在字符串中匹配：【饿了么星选】第 (红包最大个数)
+        Matcher matcher = regexUtils.getMatcher("【饿了么星选】第[0-9]{1,2}", html);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(0).substring(8));
+        } else {
+            logger.error("饿了么星选红包最大个数获取失败:{}", matcher.group(0));
+            return -1;
         }
     }
 

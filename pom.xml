@@ -10,7 +10,7 @@
     </parent>
     <groupId>cn.lzumi</groupId>
     <artifactId>elehb</artifactId>
-    <version>1.4.3</version>
+    <version>1.4.4</version>
     <name>elehb</name>
     <description>Demo project for Spring Boot</description>
 
