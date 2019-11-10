@@ -11,11 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import static cn.lzumi.elehb.utils.ResponseUtils.*;
 
@@ -29,6 +32,8 @@ public class ElemeStarServiceImpl implements HbService {
 
     @Value("${cn.lzumi.utilElemeStarCookie}")
     public String utilElemeStarCookie;
+    @Value("${cn.lzumi.elehb}")
+    public String eleme;
 
     private final int COOKIE_NUM = 10;
 
@@ -36,6 +41,19 @@ public class ElemeStarServiceImpl implements HbService {
     private ElemeStarUtils esUtils = new ElemeStarUtils();
 
     public List<ElemeStarCookie> elemeStarCookies = new ArrayList<>();
+
+    @Override
+    @Async("asyncServiceExecutor")
+    public Future<Object> get() {
+        try {
+            logger.info("开始任务");
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        logger.info("结束任务");
+        return new AsyncResult<>(eleme);
+    }
 
     /**
      * 领取饿了么星选红包

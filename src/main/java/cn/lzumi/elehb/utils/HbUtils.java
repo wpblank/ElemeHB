@@ -1,8 +1,6 @@
 package cn.lzumi.elehb.utils;
 
 import cn.lzumi.elehb.domain.Cookie;
-import cn.lzumi.elehb.domain.ElemeStarCookie;
-import cn.lzumi.elehb.domain.ElemeStarHb;
 import cn.lzumi.elehb.domain.Hb;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;

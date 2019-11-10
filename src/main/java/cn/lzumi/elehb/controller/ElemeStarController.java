@@ -4,10 +4,10 @@ import cn.lzumi.elehb.service.impl.ElemeStarServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -20,13 +20,10 @@ public class ElemeStarController {
     @Autowired
     ElemeStarServiceImpl elemeStarService;
 
-    @Value("${cn.lzumi.elehb}")
-    public String eleme;
-
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么星选红包领取", tags = {"饿了么星选"})
-    public Object get() {
-        return eleme;
+    public Object get() throws ExecutionException, InterruptedException {
+        return elemeStarService.get().get();
     }
 
     /**

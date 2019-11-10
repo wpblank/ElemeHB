@@ -1,14 +1,17 @@
 package cn.lzumi.elehb.service;
 
 import cn.lzumi.elehb.domain.Hb;
-import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
+import java.util.concurrent.Future;
 
 /**
  * @author izumi
  */
 public interface HbService {
+
+    Future<Object> get();
+
     /**
      * 领取饿了么星选红包
      *
