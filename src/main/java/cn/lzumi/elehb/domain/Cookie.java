@@ -27,7 +27,7 @@ public class Cookie {
 
     public int app;
 
-    public void add() {
+    public synchronized void add() {
         todayUse++;
         totalUse++;
     }

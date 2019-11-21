@@ -44,7 +44,7 @@ public class ElemeStarUtils implements HbUtils {
         requestHeaders.add("Accept", "*/*");
         switch (app) {
             case 0:
-                requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 9; MIX 3 Build/PKQ1.180729.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/044813 Mobile Safari/537.36 MMWEBID/8168 MicroMessenger/7.0.5.1440(0x27000534) Process/tools NetType/WIFI Language/zh_CN");
+                requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; Android 10; MIX 3 Build/QKQ1.190828.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/67.0.3396.87 XWEB/882 MMWEBSDK/190503 Mobile Safari/537.36 MMWEBID/614 MicroMessenger/7.0.5.1440(0x27000534) Process/tools NetType/WIFI Language/zh_CN");
                 break;
             case 1:
                 requestHeaders.add("User-Agent", "Mozilla/5.0 (Linux; U; Android 9; zh-CN; MIX 3 Build/PKQ1.180729.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.108 UCBrowser/11.9.4.974 UWS/2.13.2.46 Mobile Safari/537.36 AliApp(DingTalk/4.7.7) com.alibaba.android.rimet/11964676 Channel/700159 language/zh-CN");
@@ -52,8 +52,9 @@ public class ElemeStarUtils implements HbUtils {
             default:
                 break;
         }
+        requestHeaders.add("Content-Type", "application/x-www-form-urlencoded");
         requestHeaders.add("Connection", "Keep-Alive");
-        requestHeaders.add("Cookie", elemeStarCookie.getCookie());
+        requestHeaders.add("cookie", elemeStarCookie.getCookie());
     }
 
     /**
@@ -62,7 +63,7 @@ public class ElemeStarUtils implements HbUtils {
      * @return html
      */
     @Override
-    public String getOne(Hb hb, Cookie cookie) {
+    public JSONObject getOne(Hb hb, Cookie cookie) {
         ElemeStarHb elemeStarHb = (ElemeStarHb) hb;
         ElemeStarCookie elemeStarCookie = (ElemeStarCookie) cookie;
         HttpHeaders requestHeaders = new HttpHeaders();
@@ -72,11 +73,12 @@ public class ElemeStarUtils implements HbUtils {
         ResponseEntity<String> responseEntity = restTemplate.exchange
                 (elemeStarHb.getUrl(), HttpMethod.GET, requestEntity, String.class);
         String result = responseEntity.getBody();
+        JSONObject jsonObject = resultInit(result);
         // 领取成功, cookie使用次数+1
-        if (SUCCESS == getStatus(resultInit(result))) {
+        if (SUCCESS == getStatus(jsonObject)) {
             elemeStarCookie.add();
         }
-        return result;
+        return jsonObject;
     }
 
     /**
@@ -123,24 +125,19 @@ public class ElemeStarUtils implements HbUtils {
      */
     @Override
     public JSONObject resultInit(String result) {
-        Matcher matcher = regexUtils.getMatcher("init\\(\\{\"error_no\".*?}\\);", result);
-        if (matcher.find()) {
-            JSONObject jsonObject;
-            try {
-                result = matcher.group(0).substring(5, matcher.group(0).length() - 2);
-                jsonObject = JSON.parseObject(result);
-                jsonObject = jsonObject.getJSONObject("result");
-            } catch (Exception e) {
-                logger.error("result转json出错 {} {}", e.toString(), result);
-                return null;
-            }
-            jsonObject.remove("load");
-            jsonObject.remove("token");
-            jsonObject.remove("share");
-            jsonObject.remove("ext_coupons");
-            return jsonObject;
+        JSONObject jsonObject;
+        try {
+            jsonObject = JSON.parseObject(result);
+            jsonObject = jsonObject.getJSONObject("result");
+        } catch (Exception e) {
+            logger.error("result转json出错 {} {}", e.toString(), result);
+            return null;
         }
-        return null;
+        jsonObject.remove("load");
+        jsonObject.remove("token");
+        // jsonObject.remove("share");
+        jsonObject.remove("ext_coupons");
+        return jsonObject;
     }
 
     /**
@@ -155,13 +152,13 @@ public class ElemeStarUtils implements HbUtils {
             return new ElemeStarHb(null, null, null);
         } else if (requestBody.containsKey("url")) {
             String url = requestBody.get("url");
-            //注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
+            // 注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
             String caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);
             String sign = url.substring(url.indexOf("sign=") + 5, url.indexOf("sign=") + 37);
             return new ElemeStarHb(url, caseid, sign);
         } else if (requestBody.containsKey("caseid") && requestBody.containsKey("sign")) {
             String url = "https://star.ele.me/hongbao/wpshare?caseid=" +
-                    requestBody.get("caseid") + "&sign=" + requestBody.get("sign");
+                    requestBody.get("caseid") + "&sign=" + requestBody.get("sign") + "&display=json";
             return new ElemeStarHb(url, requestBody.get("caseid"), requestBody.get("sign"));
         } else {
             return new ElemeStarHb(null, null, null);
@@ -171,12 +168,12 @@ public class ElemeStarUtils implements HbUtils {
     /**
      * 根据返回结果获取第几个是最大红包
      *
-     * @param html 请求返回的html
+     * @param result 请求返回的html
      * @return lucky_number
      */
-    public int getLuckyNumberFromHtml(String html) {
+    public int getLuckyNumberFromResult(String result) {
         // 在字符串中匹配：【饿了么星选】第 (红包最大个数)
-        Matcher matcher = regexUtils.getMatcher("【饿了么星选】第[0-9]{1,2}", html);
+        Matcher matcher = regexUtils.getMatcher("【饿了么星选】第[0-9]{1,2}", result);
         if (matcher.find()) {
             return Integer.parseInt(matcher.group(0).substring(8));
         } else {
@@ -272,4 +269,32 @@ public class ElemeStarUtils implements HbUtils {
             return null;
         }
     }
+
+    /**
+     * 2019年11月21日10:51:02 注：饿了么星选改变返回值，此方法废弃
+     * 领取结果转jsonObject
+     *
+     * @param result 领取结果字符串
+     * @return
+     *
+     @Override public JSONObject resultInit(String result) {
+     Matcher matcher = regexUtils.getMatcher("init\\(\\{\"error_no\".*?}\\);", result);
+     if (matcher.find()) {
+     JSONObject jsonObject;
+     try {
+     result = matcher.group(0).substring(5, matcher.group(0).length() - 2);
+     jsonObject = JSON.parseObject(result);
+     jsonObject = jsonObject.getJSONObject("result");
+     } catch (Exception e) {
+     logger.error("result转json出错 {} {}", e.toString(), result);
+     return null;
+     }
+     jsonObject.remove("load");
+     jsonObject.remove("token");
+     jsonObject.remove("share");
+     jsonObject.remove("ext_coupons");
+     return jsonObject;
+     }
+     return null;
+     }*/
 }

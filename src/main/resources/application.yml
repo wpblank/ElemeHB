@@ -16,3 +16,4 @@ cn:
   lzumi:
   #  elehb: 欢迎使用饿了么红包领取
   # utilElemeStarCookie:  填写用于查询领取个数的饿了么星选Cookie
+  # utilElemeStarApp: 什么软件的cookie 0:微信 1:钉钉

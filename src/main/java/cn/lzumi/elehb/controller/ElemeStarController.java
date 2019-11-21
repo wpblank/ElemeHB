@@ -3,7 +3,7 @@ package cn.lzumi.elehb.controller;
 import cn.lzumi.elehb.service.impl.ElemeStarServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -23,7 +23,7 @@ public class ElemeStarController {
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么星选红包领取", tags = {"饿了么星选"})
     public Object get() throws ExecutionException, InterruptedException {
-        return elemeStarService.get().get();
+         return elemeStarService.get().get();
     }
 
     /**

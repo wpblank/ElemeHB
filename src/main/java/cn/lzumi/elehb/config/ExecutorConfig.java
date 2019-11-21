@@ -12,6 +12,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
+/**
+ * @author izumi
+ */
 @Configuration
 @EnableAsync(proxyTargetClass = true)
 public class ExecutorConfig {
@@ -25,19 +28,14 @@ public class ExecutorConfig {
         //配置核心线程数
         executor.setCorePoolSize(2);
         //配置最大线程数
-        executor.setMaxPoolSize(3);
+        executor.setMaxPoolSize(2);
         //配置队列大小
         executor.setQueueCapacity(1);
         //配置线程池中的线程的名称前缀
         executor.setThreadNamePrefix("eleme_start_");
         // rejection-policy：当pool已经达到max size的时候，如何处理新任务
         // CALLER_RUNS：不在新线程中执行任务，而是有调用者所在的线程来执行
-        executor.setRejectedExecutionHandler(new RejectedExecutionHandler() {
-            @Override
-            public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                logger.info("系统繁忙");
-            }
-        });
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
         //执行初始化
         executor.initialize();
         return executor;

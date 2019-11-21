@@ -32,7 +32,7 @@ public interface HbUtils {
      * @param cookie 待领取cookie
      * @return 返回领取结果的字符串（可能是json或者html）
      */
-    String getOne(Hb hb, Cookie cookie);
+    JSONObject getOne(Hb hb, Cookie cookie);
 
     /**
      * 根据JSON获取领取状态

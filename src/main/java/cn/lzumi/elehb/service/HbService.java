@@ -1,6 +1,7 @@
 package cn.lzumi.elehb.service;
 
 import cn.lzumi.elehb.domain.Hb;
+import com.alibaba.fastjson.JSONObject;
 
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -42,5 +43,5 @@ public interface HbService {
      * @param hb 红包对象
      * @return 领取情况
      */
-    String getOneByUtil(Hb hb);
+    JSONObject getOneByUtil(Hb hb);
 }
