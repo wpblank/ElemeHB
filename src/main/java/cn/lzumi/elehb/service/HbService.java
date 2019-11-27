@@ -11,7 +11,7 @@ import java.util.concurrent.Future;
  */
 public interface HbService {
 
-    Future<Object> get();
+    Object get() throws InterruptedException;
 
     /**
      * 领取饿了么星选红包

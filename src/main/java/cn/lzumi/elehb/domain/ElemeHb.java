@@ -1,10 +1,12 @@
 package cn.lzumi.elehb.domain;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author izumi
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class ElemeHb extends Hb{
     private String sn;

@@ -2,12 +2,17 @@ package cn.lzumi.elehb.controller;
 
 import cn.lzumi.elehb.service.impl.ElemeStarServiceImpl;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 
 /**
@@ -19,11 +24,14 @@ import java.util.concurrent.ExecutionException;
 public class ElemeStarController {
     @Autowired
     ElemeStarServiceImpl elemeStarService;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @GetMapping("/")
     @ApiOperation(value = "欢迎使用饿了么星选红包领取", tags = {"饿了么星选"})
-    public Object get() throws ExecutionException, InterruptedException {
-         return elemeStarService.get().get();
+    public Callable<Object> get() throws ExecutionException, InterruptedException {
+        // List<Future<String>> resultList = new ArrayList<Future<String>>();
+        logger.info("接收任务");
+        return () -> elemeStarService.get();
     }
 
     /**

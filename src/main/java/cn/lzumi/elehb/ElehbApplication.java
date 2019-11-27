@@ -14,7 +14,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableSwagger2
 @EnableScheduling
-@EnableAsync(proxyTargetClass=true)
+@EnableAsync(proxyTargetClass = true)
 @MapperScan("cn.lzumi.elehb.mapper")
 public class ElehbApplication {
 

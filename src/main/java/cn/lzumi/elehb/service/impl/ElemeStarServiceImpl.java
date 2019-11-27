@@ -14,11 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import static cn.lzumi.elehb.utils.ResponseUtils.*;
 
@@ -45,16 +45,11 @@ public class ElemeStarServiceImpl implements HbService {
     public List<ElemeStarCookie> elemeStarCookies = new ArrayList<>();
 
     @Override
-    @Async("asyncServiceExecutor")
-    public ListenableFuture<Object> get() {
-        try {
-            logger.info("开始任务");
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public Object get() throws InterruptedException {
+        logger.info("开始任务");
+        Thread.sleep(5000);
         logger.info("结束任务");
-        return new AsyncResult<>(eleme);
+        return eleme;
     }
 
     /**

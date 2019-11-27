@@ -76,7 +76,7 @@ public class ElemeStarUtils implements HbUtils {
         JSONObject jsonObject = resultInit(result);
         // 领取成功, cookie使用次数+1
         if (SUCCESS == getStatus(jsonObject)) {
-            elemeStarCookie.add();
+            elemeStarCookie.use();
         }
         return jsonObject;
     }

@@ -9,9 +9,9 @@ import lombok.Data;
 public class Cookie {
     public int id;
     /**
-     * 一天内该cookie使用次数
+     * 一天内该cookie剩余使用次数
      */
-    public int todayUse;
+    public int margin;
     /**
      * 总共领取了多少次
      */
@@ -21,14 +21,15 @@ public class Cookie {
      */
     public int isLose;
     /**
-     * 是否是某一用户的cookie 0:不是 1:是
+     * cookie 等级
+     * 0:小号,每天可领取5次 1:大号兼职小号,每天可领取3次 2:大号,仅用作领取最大红包
      */
-    public int isUser;
+    public int level;
 
     public int app;
 
-    public synchronized void add() {
-        todayUse++;
+    public synchronized void use() {
+        margin--;
         totalUse++;
     }
 }
