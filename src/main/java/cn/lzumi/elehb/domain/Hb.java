@@ -9,4 +9,5 @@ import lombok.Data;
 public class Hb {
     private int id;
     public String url;
+    private long getTime;
 }

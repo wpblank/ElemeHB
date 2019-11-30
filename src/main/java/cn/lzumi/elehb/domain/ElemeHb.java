@@ -13,7 +13,6 @@ public class ElemeHb extends Hb{
     private int isGet;
     private int maxNum;
     private int nowNum;
-    private String getTime;
 
     public ElemeHb(String url,String sn, int isGet, int maxNum, int nowNum) {
         this.url = url;

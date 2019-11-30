@@ -52,9 +52,9 @@ public class ElemeStarUtils implements HbUtils {
             default:
                 break;
         }
-        requestHeaders.add("Content-Type", "application/x-www-form-urlencoded");
-        requestHeaders.add("Connection", "Keep-Alive");
-        requestHeaders.add("cookie", elemeStarCookie.getCookie());
+        // requestHeaders.add("Content-Type", "application/x-www-form-urlencoded");
+        requestHeaders.add("Connection", "keep-alive");
+        requestHeaders.add("Cookie", elemeStarCookie.getCookie());
     }
 
     /**
@@ -155,6 +155,7 @@ public class ElemeStarUtils implements HbUtils {
             // 注意了！ 此处的caseid长度不是固定的(大概是订单总数之类的)，当前为10位数，懒得写位数变换的情况！
             String caseid = url.substring(url.indexOf("caseid=") + 7, url.indexOf("caseid=") + 17);
             String sign = url.substring(url.indexOf("sign=") + 5, url.indexOf("sign=") + 37);
+            url = "https://star.ele.me/hongbao/wpshare?caseid=" + caseid + "&sign=" + sign + "&display=json";
             return new ElemeStarHb(url, caseid, sign);
         } else if (requestBody.containsKey("caseid") && requestBody.containsKey("sign")) {
             String url = "https://star.ele.me/hongbao/wpshare?caseid=" +

@@ -25,7 +25,9 @@ public class Cookie {
      * 0:小号,每天可领取5次 1:大号兼职小号,每天可领取3次 2:大号,仅用作领取最大红包
      */
     public int level;
-
+    /**
+     * 什么软件的cookie 0:微信 1:钉钉
+     */
     public int app;
 
     public synchronized void use() {

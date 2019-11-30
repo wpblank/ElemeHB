@@ -103,7 +103,7 @@ public class ElemeController {
         //循环领取红包、直到最大红包前一个
         for (int i = 0; luckyNumber > nowNumber + 1 && i < elemeCookies.size(); i++) {
             //cookie的每天使用次数为5次
-            if (elemeCookies.get(i).getTodayUse() < 5) {
+            if (elemeCookies.get(i).getMargin() >0 ) {
                 JSONObject jsonObject = elemeUtils.getOne(sn, elemeCookies.get(i));
                 logger.debug((jsonObject.toJSONString()));
                 switch (jsonObject.getInteger("ret_code")) {
@@ -111,8 +111,7 @@ public class ElemeController {
                         logger.info("该cookie领取过此红包,id={}", elemeCookies.get(i).getId());
                         break;
                     case 4:
-                        elemeCookies.get(i).setTodayUse(elemeCookies.get(i).getTodayUse() + 1);
-                        elemeCookies.get(i).setTotalUse(elemeCookies.get(i).getTotalUse() + 1);
+                        elemeCookies.get(i).use();
                         nowNumber = jsonObject.getJSONArray("promotion_records").size();
                         logger.debug("红包{}的领取状况：{}/{}", sn, nowNumber, luckyNumber);
                         break;

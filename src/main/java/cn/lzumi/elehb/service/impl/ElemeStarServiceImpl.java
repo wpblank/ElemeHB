@@ -64,7 +64,10 @@ public class ElemeStarServiceImpl implements HbService {
         ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
         //初始化cookies
         cookiesInit();
-        ElemeStarCookie userElemeStarCookie = elemeStarMapper.getUserElemeStarCookie(name);
+        ElemeStarCookie userElemeStarCookie = null;
+        if (name != null) {
+            userElemeStarCookie = elemeStarMapper.getUserElemeStarCookie(name);
+        }
         JSONObject jsonResult = getOneByUtil(elemeStarHb);
         if (esUtils.getStatus(jsonResult) == OVERDUE) {
             return myResponse("红包已过期", HB_OVERDUE);
