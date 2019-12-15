@@ -89,12 +89,18 @@ public class ElemeStarUtils implements HbUtils {
      */
     @Override
     public int getStatus(JSONObject jsonObject) {
-        return (int) jsonObject.get("status");
+        if (jsonObject.containsKey("status")) {
+            return (int) jsonObject.get("status");
+        }
+        return 0;
     }
 
     @Override
     public int getNowNumber(JSONObject jsonObject) {
-        return jsonObject.getJSONArray("friends_info").size();
+        if (jsonObject.containsKey("friends_info")) {
+            return jsonObject.getJSONArray("friends_info").size();
+        }
+        return 0;
     }
 
     /**

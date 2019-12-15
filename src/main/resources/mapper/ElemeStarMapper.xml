@@ -4,9 +4,9 @@
     <update id="updateElemeStarCookieUseInfo" parameterType="cn.lzumi.elehb.domain.ElemeStarCookie">
         UPDATE eleme_star_cookie
         SET
-        today_use = CASE id
+        margin = CASE id
         <foreach collection="list" item="item" separator=" ">
-            WHEN #{item.id} THEN #{item.todayUse}
+            WHEN #{item.id} THEN #{item.margin}
         </foreach>
         END,
         total_use = CASE id

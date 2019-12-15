@@ -81,7 +81,12 @@ public class ElemeStarServiceImpl implements HbService {
         } else if (luckyNum - nowNum > 1) {
             for (int i = 0; luckyNum - nowNum > 1 && i < elemeStarCookies.size(); i++) {
                 jsonResult = esUtils.getOne(elemeStarHb, elemeStarCookies.get(i));
-                nowNum = esUtils.getNowNumber(jsonResult);
+                if (jsonResult == null) {
+                    continue;
+                }
+                if (jsonResult.containsKey("friends_info")) {
+                    nowNum = esUtils.getNowNumber(jsonResult);
+                }
             }
         }
         // 判断是否领取完毕
