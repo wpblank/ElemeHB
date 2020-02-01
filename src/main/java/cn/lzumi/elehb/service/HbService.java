@@ -1,5 +1,6 @@
 package cn.lzumi.elehb.service;
 
+import cn.lzumi.elehb.domain.Cookie;
 import cn.lzumi.elehb.domain.Hb;
 import com.alibaba.fastjson.JSONObject;
 
@@ -44,4 +45,13 @@ public interface HbService {
      * @return 领取情况
      */
     JSONObject getOneByUtil(Hb hb);
+
+    /**
+     * 通过任意cookie，查询红包信息
+     *
+     * @param hb 红包对象
+     * @param cookie 小号cookie
+     * @return 领取情况
+     */
+    JSONObject getOne(Hb hb, Cookie cookie);
 }

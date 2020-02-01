@@ -1,5 +1,6 @@
 package cn.lzumi.elehb.service.impl;
 
+import cn.lzumi.elehb.domain.Cookie;
 import cn.lzumi.elehb.domain.ElemeStarCookie;
 import cn.lzumi.elehb.domain.ElemeStarHb;
 import cn.lzumi.elehb.domain.Hb;
@@ -162,15 +163,25 @@ public class ElemeStarServiceImpl implements HbService {
     @Override
     public JSONObject getOneByUtil(Hb hb) {
         ElemeStarHb elemeStarHb = (ElemeStarHb) hb;
-        ElemeStarCookie elemeStarCookie = new ElemeStarCookie();
-        elemeStarCookie.setCookie(utilElemeStarCookie);
-        elemeStarCookie.setApp(utilElemeStarApp);
+        ElemeStarCookie elemeStarCookie = new ElemeStarCookie(utilElemeStarCookie, utilElemeStarApp);
+        return esUtils.getOne(elemeStarHb, elemeStarCookie);
+    }
+
+    @Override
+    public JSONObject getOne(Hb hb, Cookie cookie) {
+        ElemeStarHb elemeStarHb = (ElemeStarHb) hb;
+        ElemeStarCookie elemeStarCookie = (ElemeStarCookie) cookie;
         return esUtils.getOne(elemeStarHb, elemeStarCookie);
     }
 
     public JSONObject getOneByUtil(Map<String, String> requestBody) {
         ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
-        return getOneByUtil(elemeStarHb);
+        if (requestBody.containsKey("app") && requestBody.containsKey("cookie")) {
+            ElemeStarCookie elemeStarCookie = new ElemeStarCookie(requestBody.get("cookie"), Integer.parseInt(requestBody.get("app")));
+            return getOne(elemeStarHb, elemeStarCookie);
+        } else {
+            return getOneByUtil(elemeStarHb);
+        }
     }
 
 }

@@ -11,4 +11,9 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ElemeStarCookie extends Cookie{
     private String cookie;
+
+    public ElemeStarCookie(String cookie,int app){
+        this.cookie = cookie;
+        this.app = app;
+    }
 }
