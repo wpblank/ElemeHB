@@ -12,6 +12,10 @@ public class ResponseUtils {
      */
     public static final int SUCCESS = 2;
     /**
+     * 红包已抢完
+     */
+    public static final int EXCEED = 3;
+    /**
      * 红包过期
      */
     public static final int OVERDUE = 4;
@@ -31,6 +35,10 @@ public class ResponseUtils {
      * 已领取至最大前一个，主号领取失败
      */
     public static final int FAIL_TO_RECEIVE = 202;
+    /**
+     * 红包已抢完
+     */
+    public static final int HB_EXCEED = 203;
     /**
      * 红包过期
      */

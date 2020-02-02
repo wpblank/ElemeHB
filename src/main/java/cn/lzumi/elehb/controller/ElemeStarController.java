@@ -5,14 +5,11 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 
 /**
@@ -42,7 +39,7 @@ public class ElemeStarController {
     @PostMapping("/get_one")
     @ApiOperation(value = "领取一次红包", tags = {"饿了么星选"})
     public Object getOneHb(@RequestBody(required = false) Map<String, String> requestBody) {
-        return elemeStarService.getOneByUtil(requestBody);
+        return elemeStarService.getOne(requestBody);
     }
 
     /**

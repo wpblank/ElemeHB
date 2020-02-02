@@ -32,26 +32,14 @@ public interface HbService {
     Map<String, Object> getHbNumber(Map<String, String> requestBody);
 
     /**
+     * 领取一次，并查询红包信息 （当requestBody内未指定cookie时 使用配置文件中的cookie）
+     */
+    JSONObject getOne(Map<String, String> requestBody);
+
+    /**
      * 初始化cookies
      * 如果cookies不存在或者数量过少，则向数据库请求获得新的cookies
      * 同时将旧cookie的使用次数更新至数据库
      */
     void cookiesInit();
-
-    /**
-     * 通过工具人小号，查询红包信息
-     *
-     * @param hb 红包对象
-     * @return 领取情况
-     */
-    JSONObject getOneByUtil(Hb hb);
-
-    /**
-     * 通过任意cookie，查询红包信息
-     *
-     * @param hb 红包对象
-     * @param cookie 小号cookie
-     * @return 领取情况
-     */
-    JSONObject getOne(Hb hb, Cookie cookie);
 }

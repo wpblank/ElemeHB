@@ -1,9 +1,7 @@
 package cn.lzumi.elehb.service.impl;
 
-import cn.lzumi.elehb.domain.Cookie;
 import cn.lzumi.elehb.domain.ElemeStarCookie;
 import cn.lzumi.elehb.domain.ElemeStarHb;
-import cn.lzumi.elehb.domain.Hb;
 import cn.lzumi.elehb.mapper.ElemeStarMapper;
 import cn.lzumi.elehb.service.HbService;
 import cn.lzumi.elehb.utils.impl.ElemeStarUtils;
@@ -12,14 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 import static cn.lzumi.elehb.utils.ResponseUtils.*;
 
@@ -69,9 +64,12 @@ public class ElemeStarServiceImpl implements HbService {
         if (name != null) {
             userElemeStarCookie = elemeStarMapper.getUserElemeStarCookie(name);
         }
-        JSONObject jsonResult = getOneByUtil(elemeStarHb);
+        JSONObject jsonResult = getOne(requestBody);
+        if (esUtils.getStatus(jsonResult) == EXCEED) {
+            return myResponse(jsonResult.getOrDefault("msg", "红包已抢完"), HB_EXCEED);
+        }
         if (esUtils.getStatus(jsonResult) == OVERDUE) {
-            return myResponse("红包已过期", HB_OVERDUE);
+            return myResponse(jsonResult.getOrDefault("msg", "红包已过期"), HB_OVERDUE);
         }
         int luckyNum = esUtils.getLuckyNumberFromResult(jsonResult.get("share").toString());
         int nowNum = esUtils.getNowNumber(jsonResult);
@@ -121,10 +119,12 @@ public class ElemeStarServiceImpl implements HbService {
 
     @Override
     public Map<String, Object> getHbNumber(Map<String, String> requestBody) {
-        ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
-        JSONObject jsonResult = getOneByUtil(elemeStarHb);
+        JSONObject jsonResult = getOne(requestBody);
+        if (esUtils.getStatus(jsonResult) == EXCEED) {
+            return myResponse(jsonResult.getOrDefault("msg", "红包已抢完"), HB_EXCEED);
+        }
         if (esUtils.getStatus(jsonResult) == OVERDUE) {
-            return myResponse("红包已过期", HB_OVERDUE);
+            return myResponse(jsonResult.getOrDefault("msg", "红包已过期"), HB_OVERDUE);
         }
         int luckyNum = esUtils.getLuckyNumberFromResult(jsonResult.get("share").toString());
         int nowNum = esUtils.getNowNumber(jsonResult);
@@ -137,6 +137,21 @@ public class ElemeStarServiceImpl implements HbService {
             code = HB_RECEIVED;
         }
         return myResponse("红包领取状态:" + nowNum + "/" + luckyNum, code, esUtils.getFriendsInfo(jsonResult));
+    }
+
+    /**
+     * 领取一次，并查询红包信息 （当requestBody内未指定cookie时 使用配置文件中的cookie）
+     */
+    @Override
+    public JSONObject getOne(Map<String, String> requestBody) {
+        ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
+        ElemeStarCookie elemeStarCookie;
+        if (requestBody.containsKey("app") && requestBody.containsKey("cookie")) {
+            elemeStarCookie = new ElemeStarCookie(requestBody.get("cookie"), Integer.parseInt(requestBody.get("app")));
+        } else {
+            elemeStarCookie = new ElemeStarCookie(utilElemeStarCookie, utilElemeStarApp);
+        }
+        return esUtils.getOne(elemeStarHb, elemeStarCookie);
     }
 
 
@@ -156,32 +171,4 @@ public class ElemeStarServiceImpl implements HbService {
             logger.info("获取新的星选cookies，数目为：" + elemeStarCookies.size());
         }
     }
-
-    /**
-     * 通过工具人小号，查询红包信息
-     */
-    @Override
-    public JSONObject getOneByUtil(Hb hb) {
-        ElemeStarHb elemeStarHb = (ElemeStarHb) hb;
-        ElemeStarCookie elemeStarCookie = new ElemeStarCookie(utilElemeStarCookie, utilElemeStarApp);
-        return esUtils.getOne(elemeStarHb, elemeStarCookie);
-    }
-
-    @Override
-    public JSONObject getOne(Hb hb, Cookie cookie) {
-        ElemeStarHb elemeStarHb = (ElemeStarHb) hb;
-        ElemeStarCookie elemeStarCookie = (ElemeStarCookie) cookie;
-        return esUtils.getOne(elemeStarHb, elemeStarCookie);
-    }
-
-    public JSONObject getOneByUtil(Map<String, String> requestBody) {
-        ElemeStarHb elemeStarHb = esUtils.hbInit(requestBody);
-        if (requestBody.containsKey("app") && requestBody.containsKey("cookie")) {
-            ElemeStarCookie elemeStarCookie = new ElemeStarCookie(requestBody.get("cookie"), Integer.parseInt(requestBody.get("app")));
-            return getOne(elemeStarHb, elemeStarCookie);
-        } else {
-            return getOneByUtil(elemeStarHb);
-        }
-    }
-
 }
