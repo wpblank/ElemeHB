@@ -22,7 +22,7 @@ public interface ElemeStarMapper {
      * @param num 获取cookie的条数（推荐10以上）
      * @return 饿了么星选小号cookie的一个列表
      */
-    @Select("select * from eleme_star_cookie where margin>0 and level=0 and is_lose=0 limit #{num}")
+    @Select("select * from eleme_star_cookie where margin>0 and level=0 and is_lose=0 order by total_use limit #{num}")
     List<ElemeStarCookie> getElemeStarCookies(@Param("num") int num);
 
     /**
