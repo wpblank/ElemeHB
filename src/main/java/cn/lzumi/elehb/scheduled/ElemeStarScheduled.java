@@ -29,7 +29,7 @@ public class ElemeStarScheduled {
         List<ElemeStarCookie> elemeStarCookies = elemeStarService.elemeStarCookies;
         logger.info("更新星选信息条数:{}", elemeStarMapper.updateElemeStarCookieUseInfo(elemeStarCookies));
         elemeStarService.elemeStarCookies.clear();
-        logger.info("重置星选cookie今日使用次数,重置条数:{}", elemeStarMapper.clearElemeStarCookieTodayUse());
+        logger.info("重置星选cookie今日使用次数,重置条数:{}", elemeStarMapper.resetMargin());
         elemeStarService.cookiesInit();
     }
 }

@@ -43,10 +43,11 @@ public interface ElemeStarMapper {
     int updateElemeStarCookieUseInfo(List<ElemeStarCookie> elemeStarCookies);
 
     /**
-     * 将所有星选cookie的今日使用次数清空
+     * 重置饿了么星选cookie的可以使用次数
      *
-     * @return
+     * @return 重置条数
      */
-    @Update("UPDATE eleme_star_cookie SET today_use=0")
-    int clearElemeStarCookieTodayUse();
+    @Update("update eleme_star_cookie set margin=if(`level`=0,5,3) " +
+            "where (`level`=0 or `level`=1) and is_lose=0")
+    int resetMargin();
 }
